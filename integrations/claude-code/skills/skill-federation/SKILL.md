@@ -26,6 +26,10 @@ abstract wish-list, and the federation matches those wishes against its catalog.
   extraction, market sizing, PR review, SQL reporting, resume tailoring, …).
 - The user says "find a skill for…", "is there a skill that…", or runs `/skillfed`.
 
+> **Don't skip silently.** If you conclude a plan needs no skill search (e.g. bespoke work on your
+> own codebase), say so **explicitly** — name the capabilities you considered and why none needs a
+> federated skill — and **confirm with the user** before proceeding without a search.
+
 ## Backend — MCP tools if present, else `curl`
 
 **If the `skillfed-mcp` MCP tools are available this session** (`find_skills`,
