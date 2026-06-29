@@ -10,11 +10,13 @@ Discover vetted agent skills **without ever sending the user's plan, brief, or w
 across the boundary**. You reason about the *ideal* skills for the task, emit an
 abstract wish-list, and the federation matches those wishes against its catalog.
 
-> **Privacy floor (constitution Principle IV) — non-negotiable.** Only a wish's
-> `name` / `description` / `keywords`, and on a miss a capability `sketch`, may leave
-> the machine. The plan, brief, outputs, file contents, and your reasoning trace MUST
-> NOT appear in any wish, keyword, sketch, or search payload. If you can't phrase a
-> need without quoting the user's content, abstract it until you can.
+> **Privacy floor (constitution Principle IV) — non-negotiable.** What leaves the machine is only
+> the abstract wish — its one-line `description`, its ~4 paraphrased `formulations`, and 1–5
+> `keywords` — and, on a miss, a capability `sketch`. (The wish `name` is display-only and stays
+> local; the search payload is the concatenated description + formulations, plus keywords.) The
+> plan, brief, outputs, file contents, and your reasoning trace MUST NOT appear in any description,
+> formulation, keyword, sketch, or search payload. If you can't phrase a need without quoting the
+> user's content, abstract it until you can.
 
 ## When to use
 

@@ -16,8 +16,8 @@
  * demo only exposes per-wish /search, so we emulate the batch by fanning out with
  * Promise.all (replaces Python's ThreadPoolExecutor).
  *
- * PRIVACY (Principle IV): only each wish's name/description/keywords cross the
- * boundary. The plan, brief, outputs, and reasoning trace never do.
+ * PRIVACY (Principle IV): only each wish's description, paraphrased formulations, and
+ * keywords cross the boundary. The plan, brief, outputs, and reasoning trace never do.
  */
 
 import { federation, ENDPOINT } from "./federation.mjs";

@@ -34,8 +34,9 @@ You: /skillfed automate monthly vendor-invoice reconciliation
 
 ## Why it's different
 
-- **Privacy floor, by design.** Only a wish's name, one-line description, and a few keywords ever
-  cross the boundary. Your plan, brief, file contents, and reasoning trace stay local — always.
+- **Privacy floor, by design.** Only the abstract wish crosses the boundary — a one-line
+  capability description, a few vocabulary-varied paraphrases of it, and 1–5 keywords. Your plan,
+  brief, file contents, and reasoning trace stay local — always.
 - **Trust before install.** Every candidate shows its license class, provenance, stars, source,
   and any security flags. *You* approve each install. Nothing is pulled silently.
 - **Native, zero-install.** The default tier needs nothing but `curl` — already on Windows 10+
@@ -84,8 +85,9 @@ config, never clobbers).
 
 ## Privacy & trust
 
-- **What crosses the boundary:** a wish's `name`, one-line `description`, and 1–5 `keywords`; and,
-  only when nothing matches, an abstract capability *sketch* of the missing skill.
+- **What crosses the boundary:** the abstract wish — its one-line `description`, ~4 paraphrased
+  `formulations` of it (for search recall), and 1–5 `keywords`; and, only when nothing matches, an
+  abstract capability *sketch* of the missing skill. The wish's `name` is display-only and is not sent.
 - **What never crosses:** your plan, brief, file contents, outputs, or reasoning trace.
 - **Demand vs. rejection are never conflated:** an empty result records a catalog gap; rejecting
   shown candidates records a retrieval-quality signal. Different streams, by design.

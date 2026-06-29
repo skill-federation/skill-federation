@@ -12,8 +12,8 @@
  *   report_selection     — per-wish agentic-selection outcome (label flywheel)
  *   emit_demand_pointer   — record a structured sketch on an empty-retrieval miss
  *
- * PRIVACY (Principle IV): only abstracted wishes (name/description/keywords) and,
- * on a miss, a capability sketch ever cross the boundary. Never the plan/brief/output.
+ * PRIVACY (Principle IV): only abstracted wishes (description + paraphrased formulations
+ * + keywords) and, on a miss, a capability sketch ever cross the boundary. Never the plan/brief/output.
  *
  * Config (env): SKILLFED_ENDPOINT (required), SKILLFED_API_KEY (optional),
  * SKILLFED_TENANT, SKILLFED_TOP_N (3), SKILLFED_K (4).

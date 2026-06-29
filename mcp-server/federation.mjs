@@ -14,7 +14,7 @@
  *   (no analogue)     ↔ submit_suggestion   (reflection loop — out of this first pass)
  *
  * PRIVACY (constitution Principle IV): callers MUST send only abstracted wishes
- * (name/description/keywords) and, on a miss, a capability sketch — never the
+ * (description + paraphrased formulations + keywords) and, on a miss, a capability sketch — never the
  * user's plan, brief, output, or any tenant data.
  *
  * Config (env):

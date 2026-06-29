@@ -18,9 +18,10 @@ demo only exposes a per-wish `/search`, so we emulate the batch by fanning out a
 across WISHES (ThreadPoolExecutor — `urllib` is blocking). Swap `SKILLFED_ENDPOINT`
 to our own federation core later and this same helper keeps working (the client seam).
 
-PRIVACY (constitution Principle IV): only each wish's name/description/keywords cross
-the boundary. The plan, brief, outputs, and reasoning trace never do — they are not
-even passed to this script.
+PRIVACY (constitution Principle IV): only each wish's description, its paraphrased
+formulations, and keywords cross the boundary (name is display-only and stays local).
+The plan, brief, outputs, and reasoning trace never do — they are not even passed to
+this script.
 
 Usage:
   python search_wishlist.py wishlist.json
