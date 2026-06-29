@@ -1,0 +1,19 @@
+# Normalize line endings so the repo is byte-stable across Windows/macOS/Linux.
+* text=auto eol=lf
+
+# Shell scripts MUST stay LF (CRLF breaks the shebang on macOS/Linux).
+*.sh   text eol=lf
+
+# Windows scripts want CRLF.
+*.ps1  text eol=crlf
+*.cmd  text eol=crlf
+
+# Code + docs: LF.
+*.mjs  text eol=lf
+*.py   text eol=lf
+*.json text eol=lf
+*.md   text eol=lf
+
+# Binary assets (none yet, but future-proof).
+*.png binary
+*.jpg binary

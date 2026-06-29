@@ -1,0 +1,37 @@
+{
+  "wishlist": [
+    {
+      "name": "csv-cleaning",
+      "description": "Clean and normalize messy CSV data against a schema",
+      "keywords": ["csv", "dataframe", "dtype", "dedupe", "parsing"],
+      "formulations": [
+        "clean and normalize messy tabular data",
+        "dedupe rows and coerce column types in a dataset",
+        "handle missing values and standardize a dataframe",
+        "sanitize a CSV export into a tidy validated dataset"
+      ]
+    },
+    {
+      "name": "xlsx-report-builder",
+      "description": "Generate a formatted XLSX workbook with a chart",
+      "keywords": ["xlsx", "openpyxl", "worksheet", "chart", "formatting"],
+      "formulations": [
+        "write a styled Excel spreadsheet with formatted cells",
+        "build an XLSX report with an embedded chart and summary table",
+        "produce an Excel workbook from tabular data using openpyxl",
+        "export results to a multi-sheet formatted Excel file"
+      ]
+    },
+    {
+      "name": "python-cli-scaffold",
+      "description": "Scaffold a Python CLI with subcommands and help",
+      "keywords": ["cli", "argparse", "click", "entrypoint", "console-script"],
+      "formulations": [
+        "scaffold a python command-line tool with subcommands",
+        "build a CLI app with argument parsing and help text",
+        "create a console entry point for a python package",
+        "set up a click-based command line interface"
+      ]
+    }
+  ]
+}

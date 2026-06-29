@@ -1,0 +1,33 @@
+{
+  "name": "skillfed-mcp",
+  "version": "0.1.0",
+  "description": "Skill Federation finder as a Node MCP server — Python-free, zero-install via npx. Calls the hosted federation; Claude calls the tools directly.",
+  "type": "module",
+  "bin": {
+    "skillfed-mcp": "index.mjs"
+  },
+  "main": "index.mjs",
+  "files": [
+    "index.mjs",
+    "federation.mjs",
+    "findSkills.mjs",
+    "localSkills.mjs"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node index.mjs"
+  },
+  "keywords": [
+    "skill-federation",
+    "mcp",
+    "claude-code",
+    "agent-skills",
+    "skill-discovery"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  }
+}

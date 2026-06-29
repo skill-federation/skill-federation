@@ -1,0 +1,23 @@
+# Node
+node_modules/
+npm-debug.log*
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Local env / secrets
+.env
+*.local
+
+# Editor / OS junk
+.DS_Store
+Thumbs.db
+~$*
+
+# Local Claude state (never part of the release)
+.claude/
+
+# Federation runtime sinks (tenant-session artifacts)
+federation_data/

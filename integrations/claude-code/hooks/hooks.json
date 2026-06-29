@@ -1,0 +1,17 @@
+{
+  "description": "Skill Federation — searches a federated catalog of vetted agent skills when you approve a plan, and on demand. Backend is remote; this only forwards the task and shows ranked candidates.",
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "ExitPlanMode",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "curl -s \"file://${CLAUDE_PLUGIN_ROOT}/hooks/plan_nudge.json\"",
+            "timeout": 20
+          }
+        ]
+      }
+    ]
+  }
+}
