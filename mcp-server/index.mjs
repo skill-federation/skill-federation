@@ -10,7 +10,7 @@
  *   find_skills          — lexical-recall search over a wish-list (the only discovery path)
  *   get_skill_bundle     — fetch a confirmed match's bundle for install
  *   report_selection     — per-wish agentic-selection outcome (label flywheel)
- *   emit_demand_pointer   — record a structured sketch on an empty-retrieval miss
+ *   emit_demand_pointer   — record a build-spec sketch on a miss (empty OR all-rejected)
  *
  * PRIVACY (Principle IV): only abstracted wishes (description + paraphrased formulations
  * + keywords) and, on a miss, a capability sketch ever cross the boundary. Never the plan/brief/output.
@@ -92,17 +92,17 @@ const TOOLS = [
   {
     name: "report_selection",
     description:
-      "Report one wish's agentic-selection outcome. chosen = selected id, or null when every " +
-      "candidate was rejected (a false-positive label — NOT a demand signal). rejected = the " +
-      "other shown candidate ids.",
+      "Report one wish's agentic-selection outcome. chosen = the selected skill id, or the literal " +
+      "string \"None\" when every candidate was rejected (a retrieval-quality label, complementary to " +
+      "a demand pointer — not a substitute for it). rejected = the other shown candidate ids.",
     inputSchema: {
       type: "object",
-      required: ["query_id"],
+      required: ["query_id", "chosen"],
       properties: {
         query_id: { type: "string" },
         chosen: {
-          type: ["string", "null"],
-          description: "selected skill id, or null if all candidates were rejected",
+          type: "string",
+          description: "selected skill id, or the literal \"None\" if all candidates were rejected",
         },
         rejected: {
           type: "array",
@@ -115,18 +115,27 @@ const TOOLS = [
   {
     name: "emit_demand_pointer",
     description:
-      "Record a missing capability as a structured expected-response sketch. Fire ONLY when " +
-      "find_skills returned zero candidates for a wish (empty retrieval). Rejected candidates are " +
-      "NOT demand — report those via report_selection with chosen=null. Keep the sketch at the " +
-      "'what skill should exist' abstraction; never include plan/brief/output text.",
+      "Record a missing capability on a MISS — a wish that returned zero candidates (empty), OR one " +
+      "where you rejected every candidate (the rejection reasoning reveals the gap). Pass the searched " +
+      "`wish` string plus a `sketch` STRING built per demand-sketch.md (a single-line JSON of " +
+      "purpose/inputs/outputs/operations/domain_vocab/section_sketch, prefixed with the query_id). " +
+      "Capability-level abstraction only — never plan/brief/output/data.",
     inputSchema: {
       type: "object",
-      required: ["sketch"],
+      required: ["wish", "sketch"],
       properties: {
+        wish: {
+          type: "string",
+          description: "the exact wish string you searched (the traceability anchor; required, non-empty)",
+        },
         sketch: {
-          type: "object",
+          type: "string",
           description:
-            "purpose, inputs, outputs, operations, domain_vocab, section_sketch — abstract only",
+            "condensed build spec per demand-sketch.md: \"<query_id>: <minified-json>\" (a STRING, not an object)",
+        },
+        query_id: {
+          type: "string",
+          description: "optional; prepended to sketch as the trace if not already embedded",
         },
         tags: { type: "array", items: { type: "string" } },
         source: { type: "string", default: "unmatched_wish" },
@@ -163,11 +172,13 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
         return jsonResult(await federation.fetch(args.skill_id));
       case "report_selection":
         return jsonResult(
-          await federation.reportSelection(args.query_id, args.chosen ?? null, args.rejected || [])
+          await federation.reportSelection(args.query_id, args.chosen, args.rejected || [])
         );
       case "emit_demand_pointer":
         return jsonResult(
-          await federation.emitDemandPointer(args.sketch, args.tags || [], args.source || "unmatched_wish")
+          await federation.emitDemandPointer(
+            args.wish, args.sketch, args.query_id || null, args.tags || [], args.source || "unmatched_wish"
+          )
         );
       default:
         return errorResult("UNKNOWN_TOOL", `no such tool: ${name}`);

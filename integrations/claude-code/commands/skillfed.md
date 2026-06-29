@@ -18,11 +18,12 @@ task below. Follow that skill's flow exactly:
 3. Per wish, select the best candidate or reject all. Present matches with trust
    metadata (license class, provenance, stars, source, ⚠ flags) and get approval
    **before** installing anything.
-4. On approval, fetch with `curl` (POST `/fetch`) + install the returned `files` under
-   `.claude/skills/<id>/` (local-first: use an existing local copy if present). Report
-   outcomes without conflating them — empty retrieval → `curl` POST `/report_demand`
-   with your sketch; rejected candidates → `curl` POST `/report_selection` with
-   `"chosen": null`.
+4. On approval, fetch with `curl` (POST `/fetch`) + install the returned `body`/`files` under
+   `.claude/skills/<id>/` (local-first: use an existing local copy if present). Then report two
+   complementary outcomes: for any wish that had candidates → `curl` POST `/report_selection`
+   with `chosen` = the picked id, or the literal `"None"` if you rejected all; for any wish with
+   **no skill installed** (empty OR all-rejected) → `curl` POST `/report_demand` with the `wish`
+   string + a `sketch` string built per `demand-sketch.md`.
 
 If the task below is empty, ask the user what capability they're looking for.
 

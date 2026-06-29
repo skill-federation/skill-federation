@@ -12,7 +12,8 @@ abstract wish-list, and the federation matches those wishes against its catalog.
 
 > **Privacy floor (constitution Principle IV) — non-negotiable.** What leaves the machine is only
 > the abstract wish — its one-line `description`, its ~4 paraphrased `formulations`, and 1–5
-> `keywords` — and, on a miss, a capability `sketch`. (The wish `name` is display-only and stays
+> `keywords` — and, on a miss, a capability `sketch` (a condensed, capability-level string per
+> [demand-sketch.md](demand-sketch.md)). (The wish `name` is display-only and stays
 > local; the search payload is the concatenated description + formulations, plus keywords.) The
 > plan, brief, outputs, file contents, and your reasoning trace MUST NOT appear in any description,
 > formulation, keyword, sketch, or search payload. If you can't phrase a need without quoting the
@@ -47,7 +48,9 @@ through your shell (Bash) tool.
 - **Quoting-safe pattern**: write each JSON request body to a temp file and send it with
   `--data-binary "@<file>"`, so no shell has to escape braces or quotes.
 
-All four federation operations below are one `curl` POST each.
+The federation operations below are one `curl` POST each — `/search`, `/fetch`,
+`/report_selection`, `/report_demand`. (The endpoint also exposes `/report_outcome` for
+post-use signals; that's out of scope for the finder.)
 
 ## The flow (two hops; always user-approved before install)
 
@@ -128,33 +131,39 @@ All four federation operations below are one `curl` POST each.
    local edits back. A general improvement that isn't tenant-specific is a FEDERATED
    suggestion instead. (Full reflection/suggestion chain is a later task; keep it light.)
 
-### Report outcomes — **never conflate the two streams**
+### Report outcomes — two complementary reports
 
 8. For every wish that **had candidates**, report the selection with `curl`
-   (`/report_selection`, per wish, with its `query_id`):
+   (`/report_selection`, per wish, with its `query_id`). `chosen` must be a **non-empty
+   string** — the selected id, or the literal `"None"` if you rejected every candidate:
    ```bash
    # body.json  →  { "tenant":"local", "query_id":"<query_id>",
-   #                 "chosen":"<id-or-null>", "rejected":["<id>","…"] }
+   #                 "chosen":"<id-or-'None'>", "rejected":["<id>","…"] }
    curl.exe -s --max-time 20 -X POST "$SKILLFED_ENDPOINT/report_selection" \
      -H "Content-Type: application/json" --data-binary "@body.json"
    ```
-   `"chosen": null` means you rejected every candidate — a retrieval-quality
-   (false-positive) label, **not** a demand signal.
-9. For every wish whose search came back **empty** (zero candidates), record a demand
-   pointer with `curl` (`/report_demand`), carrying your sketch (abstract capability only):
+   `"chosen":"None"` records that the shown candidates were all wrong — a retrieval-quality
+   signal (not a substitute for the demand pointer below).
+9. For every wish that ended with **no skill installed** — search came back **empty**, OR you
+   **rejected every candidate** — record a demand pointer with `curl` (`/report_demand`).
+   `wish` is REQUIRED (the wish string you searched). Build the `sketch` **string** exactly per
+   **[demand-sketch.md](demand-sketch.md)** — a `"<query_id>: <minified-json>"` build spec
+   (it is a STRING, not an object; the endpoint's `sketch` field is a string):
    ```bash
-   # body.json  →  { "tenant":"local", "wish":null, "sketch": {
-   #   "purpose":"…","inputs":["…"],"outputs":["…"],"operations":["…"],
-   #   "domain_vocab":["…"],"section_sketch":"…","tags":["…"],"source":"unmatched_wish" } }
+   # body.json  →  { "tenant":"local",
+   #   "wish":"<the description + formulations you searched>",
+   #   "sketch":"<query_id>: {\"purpose\":\"…\",\"inputs\":[…],\"outputs\":[…],\"operations\":[…],\"domain_vocab\":[…],\"section_sketch\":\"…\",\"tags\":[…],\"source\":\"unmatched_wish|all_rejected\"}" }
    curl.exe -s --max-time 20 -X POST "$SKILLFED_ENDPOINT/report_demand" \
      -H "Content-Type: application/json" --data-binary "@body.json"
    ```
-   Demand = catalog gap (empty retrieval). Rejection = retrieval quality. They feed
-   different flywheels and must never be mixed.
+   The two reports are **complementary**, not conflated: `report_selection` labels retrieval
+   quality (these candidates were shown); `report_demand` captures the capability gap (what was
+   actually needed). On **all-rejected** send BOTH; on **empty** send only the demand pointer.
 
 ## Don't
 
 - Don't put plan/brief/output text into any wish, keyword, sketch, or payload.
 - Don't install without user approval, or re-recommend an already-installed skill.
-- Don't emit a demand pointer for a wish that returned candidates you rejected.
+- Don't author a demand sketch for a wish whose candidate you **accepted** (only on empty or all-rejected).
+- Don't send `sketch` as a JSON object or `chosen` as null/empty — both are strings (see step 8–9).
 - Don't treat candidates as authoritative — they're recall; you and the user decide.

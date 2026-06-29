@@ -146,7 +146,7 @@ def _search_one(wish: dict, installed: set[str]) -> dict:
         return out
     out["query_id"] = res.get("query_id")
     raw = res.get("candidates", []) or []
-    out["empty"] = len(raw) == 0  # genuine empty retrieval → demand-pointer case
+    out["empty"] = len(raw) == 0  # empty retrieval → demand pointer (so can all-rejected, later)
     norm = [_normalize(c) for c in raw]
     new, have = filter_candidates(norm, installed)
     out["candidates"] = new[:TOP_N]

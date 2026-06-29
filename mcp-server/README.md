@@ -12,11 +12,12 @@ It exposes the same hosted federation as four MCP tools over stdio:
 |---|---|---|
 | `find_skills` | `/search` (per wish, fanned out) | lexical-recall search over a wish-list |
 | `get_skill_bundle` | `/fetch` | fetch a confirmed match's files for install |
-| `report_selection` | `/report_selection` | per-wish agentic-selection label |
-| `emit_demand_pointer` | `/report_demand` | structured sketch on an empty-retrieval miss |
+| `report_selection` | `/report_selection` | per-wish selection label; `chosen` = id, or the literal `"None"` if all rejected |
+| `emit_demand_pointer` | `/report_demand` | demand on a miss (empty OR all-rejected): `wish` + a `sketch` **string** per `demand-sketch.md` |
 
 The request/response shapes are identical to the curl plugin's `/search`, `/fetch`,
-`/report_selection`, and `/report_demand` calls.
+`/report_selection`, and `/report_demand` calls. Note the endpoint requires a non-empty `chosen`
+(use `"None"`) and a non-empty `wish`, and `sketch` is a **string**, not an object.
 
 ## Requirements
 

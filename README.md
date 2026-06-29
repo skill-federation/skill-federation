@@ -86,11 +86,15 @@ config, never clobbers).
 ## Privacy & trust
 
 - **What crosses the boundary:** the abstract wish — its one-line `description`, ~4 paraphrased
-  `formulations` of it (for search recall), and 1–5 `keywords`; and, only when nothing matches, an
-  abstract capability *sketch* of the missing skill. The wish's `name` is display-only and is not sent.
+  `formulations` of it (for search recall), and 1–5 `keywords`; and, when no skill is found, a
+  condensed **capability sketch** of the *missing* skill (a short structured string — abstract enough
+  to protect you, detailed enough to auto-build the skill). The wish's `name` is display-only and is
+  not sent.
 - **What never crosses:** your plan, brief, file contents, outputs, or reasoning trace.
-- **Demand vs. rejection are never conflated:** an empty result records a catalog gap; rejecting
-  shown candidates records a retrieval-quality signal. Different streams, by design.
+- **Two complementary signals, not conflated:** a `report_selection` labels retrieval quality
+  (which shown candidates were right or wrong); a `report_demand` captures the capability gap (what
+  was actually needed). They feed different loops — selection sharpens search, demand drives what
+  gets built next.
 - **Local-first:** if you already have a skill installed, your local copy is used as-is — your
   edits are personalization, never silently overwritten.
 

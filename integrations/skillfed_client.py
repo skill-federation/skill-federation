@@ -86,12 +86,15 @@ class SkillfedClient:
             return self._http("/fetch", {"tenant": TENANT, "skill_id": skill_id})
         return self._local_fed().fetch(TENANT, skill_id)
     def report_selection(self, query_id, chosen, rejected=None) -> dict:
-        """Label-flywheel report for ONE wish's agentic selection (spec tool 5).
+        """Label-flywheel report for ONE wish's agentic selection.
 
-        chosen = selected_id (or None = all-rejected → false-positive label);
-        rejected = the other shown candidate ids (hard negatives). Per-wish here
-        because the qurini adapter issues one /search (one query_id) per wish.
+        chosen = the selected skill id, or the literal string "None" when every
+        candidate was rejected. The endpoint requires a non-empty `chosen`, so we
+        coerce a missing/empty value to the "None" sentinel (never null/empty).
+        rejected = the other shown candidate ids (hard negatives). Per-wish: the
+        qurini adapter issues one /search (one query_id) per wish.
         """
+        chosen = chosen if (chosen and str(chosen).strip()) else "None"
         if self.endpoint:
             return self._http("/report_selection", {"tenant": TENANT,
                               "query_id": query_id, "chosen": chosen,
@@ -105,24 +108,38 @@ class SkillfedClient:
         return self._local_fed().report_outcome(TENANT, skill_id, outcome)
 
     def report_demand(self, wish, sketch=None) -> dict:
+        """Record demand for a missing skill. `wish` is REQUIRED (the searched wish
+        string — the endpoint rejects an empty wish); `sketch` is an optional STRING
+        (the condensed build spec, see demand-sketch.md). Never a raw object."""
+        if not (wish and str(wish).strip()):
+            raise ValueError("report_demand requires a non-empty wish string")
         if self.endpoint:
             return self._http("/report_demand", {"tenant": TENANT, "wish": wish,
                               "sketch": sketch})
         return self._local_fed().report_demand(TENANT, wish, sketch)
 
-    def emit_demand_pointer(self, sketch: dict, tags=None,
+    def emit_demand_pointer(self, wish, sketch, query_id=None, tags=None,
                             source: str = "unmatched_wish") -> dict:
-        """Spec tool 4 — record a structured expected-response sketch on a MISS.
+        """Record a demand pointer on a MISS — an empty retrieval OR after rejecting
+        every candidate (see demand-sketch.md).
 
-        Fires ONLY when find_skills returned zero candidates for a wish (empty
-        retrieval). Agent-rejected candidate sets are NOT demand — they are
-        false-positive labels via report_selection(selected_id=None). The two
-        streams must never be conflated (data-model.md Demand Pointer).
+        `wish`  = the searched wish string (required; traceability anchor).
+        `sketch`= the build spec: either a dict of the canonical fields (purpose,
+                  inputs, outputs, operations, domain_vocab, section_sketch) or a
+                  ready string. A dict is serialized to a single-line JSON string,
+                  merged with tags/source, then prefixed with "<query_id>: ". The
+                  endpoint's `sketch` field is a STRING, so we never send an object.
 
-        `sketch` stays at "what skill should exist" abstraction — never the raw
-        plan/brief (Principle IV). Adapter: carried over qurini's /report_demand.
+        Stays at "what skill should exist" abstraction — never the raw plan/brief
+        (Principle IV). Carried over qurini's /report_demand.
         """
-        payload_sketch = dict(sketch or {})
-        payload_sketch.setdefault("tags", tags or [])
-        payload_sketch.setdefault("source", source)
-        return self.report_demand(wish=None, sketch=payload_sketch)
+        if isinstance(sketch, dict):
+            obj = dict(sketch)
+            obj.setdefault("tags", tags or [])
+            obj.setdefault("source", source)
+            sketch_str = json.dumps(obj, separators=(",", ":"), ensure_ascii=False)
+        else:
+            sketch_str = str(sketch)
+        if query_id:
+            sketch_str = f"{query_id}: {sketch_str}"
+        return self.report_demand(wish=wish, sketch=sketch_str)

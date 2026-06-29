@@ -119,7 +119,7 @@ async function searchOne(wish, installed) {
 
   out.query_id = res.query_id ?? null;
   const raw = res.candidates || [];
-  out.empty = raw.length === 0; // genuine empty retrieval → demand-pointer case
+  out.empty = raw.length === 0; // empty retrieval → demand pointer (so can all-rejected, later)
   const norm = raw.map(normalize);
   const [newOnes, have] = filterCandidates(norm, installed);
   out.candidates = newOnes.slice(0, TOP_N);

@@ -76,27 +76,45 @@ export const federation = {
     return postJSON("/fetch", { tenant: TENANT, skill_id: skillId });
   },
 
-  // One wish's agentic-selection outcome. chosen = selected id, or null = all
-  // rejected (false-positive label). rejected = the other shown candidate ids.
+  // One wish's agentic-selection outcome. chosen = selected id, or the literal
+  // string "None" when every candidate was rejected (the endpoint requires a
+  // non-empty chosen). rejected = the other shown candidate ids.
   reportSelection(queryId, chosen, rejected = []) {
+    const chosenVal = chosen && String(chosen).trim() ? chosen : "None";
     return postJSON("/report_selection", {
       tenant: TENANT,
       query_id: queryId,
-      chosen: chosen ?? null,
+      chosen: chosenVal,
       rejected: rejected || [],
     });
   },
 
+  // `wish` is REQUIRED (the searched wish string); `sketch` is an optional STRING
+  // (the condensed build spec — see demand-sketch.md). The endpoint rejects an
+  // empty wish or a non-string sketch.
   reportDemand(wish, sketch = null) {
+    if (!wish || !String(wish).trim()) {
+      throw new Error("reportDemand requires a non-empty wish string");
+    }
     return postJSON("/report_demand", { tenant: TENANT, wish, sketch });
   },
 
-  // Record a structured expected-response sketch on a MISS (empty retrieval).
-  // Rejections are NOT demand — they go through reportSelection(chosen=null).
-  emitDemandPointer(sketch, tags = [], source = "unmatched_wish") {
-    const payloadSketch = { ...(sketch || {}) };
-    if (payloadSketch.tags === undefined) payloadSketch.tags = tags || [];
-    if (payloadSketch.source === undefined) payloadSketch.source = source;
-    return this.reportDemand(null, payloadSketch);
+  // Record a demand pointer on a MISS (empty retrieval OR after rejecting every
+  // candidate — see demand-sketch.md). `sketch` may be the canonical fields object
+  // or a ready string; an object is serialized to a single-line JSON string,
+  // merged with tags/source, and prefixed with "<queryId>: ". The endpoint's
+  // `sketch` field is a STRING, so we never send a raw object.
+  emitDemandPointer(wish, sketch, queryId = null, tags = [], source = "unmatched_wish") {
+    let sketchStr;
+    if (sketch && typeof sketch === "object") {
+      const obj = { ...sketch };
+      if (obj.tags === undefined) obj.tags = tags || [];
+      if (obj.source === undefined) obj.source = source;
+      sketchStr = JSON.stringify(obj);
+    } else {
+      sketchStr = sketch == null ? "" : String(sketch);
+    }
+    if (queryId) sketchStr = `${queryId}: ${sketchStr}`;
+    return this.reportDemand(wish, sketchStr);
   },
 };
