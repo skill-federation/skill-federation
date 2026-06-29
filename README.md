@@ -54,6 +54,25 @@ You: /skillfed automate monthly vendor-invoice reconciliation
    full license + source attribution.
 6. **Use.** Your agent uses the skill immediately — no reinventing it.
 
+## Benchmark
+
+We measured Skill Federation on **SkillsBench** (coding-agent tasks with deterministic verifiers),
+with the agent harnessed as **Claude Code (Opus 4.6)**. The catch that makes this a real test:
+the skill Skillfed retrieves comes from a **26,629-skill public catalog that does not contain the
+benchmark's own answer skills** — so this measures whether *independently authored* skills transfer
+to the task, not whether we can re-find the benchmark's hand-written one.
+
+| Condition | What the agent gets | Success |
+|---|---|---|
+| No skill | bare Claude Code (Opus 4.6) | 17.5% |
+| **Skillfed** | top skill retrieved from the 26,629-skill wild catalog | **22.8%** |
+| Oracle | the task's own hand-written skill — an unreachable upper bound | 36.8% |
+
+Skillfed lifts success **from 17.5% to 22.8% — a ~30% relative gain** over the bare agent, and
+recovers **~27% of the gap** to an oracle skill it never sees. Most skill-retrieval results test
+*oracle-recovery* (the benchmark's own skill sits in the pool); this tests *transfer* — useful
+skills pulled from a large, noisy public catalog.
+
 ## Install
 
 From this repo's root:
