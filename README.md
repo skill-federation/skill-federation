@@ -132,6 +132,18 @@ chmod +x install.sh && ./install.sh
 > Then **restart Claude Code** and run `/skillfed <what you're trying to do>` — or just approve
 > a plan and the finder offers itself automatically.
 
+**Or just ask Claude Code.** Don't want to touch a terminal? Paste this and let it do the setup:
+
+```text
+Set up the Skill Federation "/skillfed" finder from
+github.com/skill-federation/skill-federation — clone the repo and run its
+installer (install.ps1 on Windows, install.sh on macOS/Linux) from the repo
+root, then tell me to restart Claude Code and try /skillfed.
+```
+
+It'll ask permission to clone and run the script. Prefer something deterministic? The shell
+one-liner above is the canonical path.
+
 The installer auto-detects your machine and always installs the **curl** tier (zero runtime).
 Opt into more with flags:
 
