@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 372" width="720" height="372"
+     role="img" aria-label="Terminal demo: running /skillfed for monthly vendor-invoice reconciliation returns three vetted skill matches to install">
+  <title>Skill Federation — /skillfed demo</title>
+  <desc>An animated terminal types the command /skillfed automate monthly vendor-invoice reconciliation, then reveals three wish-to-skill matches (pdf-processing, data-cleaning, slack) each marked MIT - verified, and finally a prompt to install the three skills into .claude/skills/ with license and source attribution.</desc>
+
+  <style>
+    .mono { font-family: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace; }
+    .ink   { fill: #1E1B16; }
+    .soft  { fill: #4F493F; }
+    .muted { fill: #8A8377; }
+    .violet{ fill: #7C5CDB; }
+    .green { fill: #2E9E6B; }
+    .amber { fill: #C98A12; }
+
+    /* one shared 11s timeline so everything loops in sync */
+    .cover { fill: #F7F3EB; transform-box: fill-box; transform-origin: right center;
+             animation: wipe 11s linear infinite; }
+    @keyframes wipe {
+      0%, 4%   { transform: scaleX(1); }
+      22%, 96% { transform: scaleX(0); }
+      100%     { transform: scaleX(1); }
+    }
+    .caret { animation: blink 1.05s steps(1) infinite; }
+    @keyframes blink { 0%,50% { opacity:1 } 50.01%,100% { opacity:0 } }
+
+    .l { opacity: 0; }
+    .l1 { animation: r1 11s ease infinite; }
+    .l2 { animation: r2 11s ease infinite; }
+    .l3 { animation: r3 11s ease infinite; }
+    .l4 { animation: r4 11s ease infinite; }
+    .l5 { animation: r5 11s ease infinite; }
+    @keyframes r1 { 0%,25%{opacity:0} 29%,96%{opacity:1} 100%{opacity:0} }
+    @keyframes r2 { 0%,31%{opacity:0} 35%,96%{opacity:1} 100%{opacity:0} }
+    @keyframes r3 { 0%,37%{opacity:0} 41%,96%{opacity:1} 100%{opacity:0} }
+    @keyframes r4 { 0%,43%{opacity:0} 46%,96%{opacity:1} 100%{opacity:0} }
+    @keyframes r5 { 0%,52%{opacity:0} 57%,96%{opacity:1} 100%{opacity:0} }
+  </style>
+
+  <!-- card -->
+  <rect x="6" y="6" width="708" height="360" rx="18" fill="#F7F3EB"
+        stroke="#1E1B16" stroke-opacity="0.14"/>
+  <!-- title bar -->
+  <circle cx="34" cy="36" r="6" fill="#E07A55"/>
+  <circle cx="54" cy="36" r="6" fill="#E8C24A"/>
+  <circle cx="74" cy="36" r="6" fill="#5FB68C"/>
+  <text x="360" y="40" text-anchor="middle" class="mono muted" font-size="12">skill-federation · finder</text>
+  <line x1="6" y1="58" x2="714" y2="58" stroke="#1E1B16" stroke-opacity="0.10"/>
+
+  <!-- command line -->
+  <text x="30" y="96" class="mono muted" font-size="15">You:</text>
+  <text x="78" y="96" class="mono ink" font-size="15">/skillfed automate monthly vendor-invoice reconciliation</text>
+  <rect class="cover" x="76" y="82" width="540" height="20"/>
+  <rect class="caret" x="618" y="83" width="9" height="17" fill="#7C5CDB"/>
+
+  <!-- wish -> skill matches (monospace keeps the columns aligned) -->
+  <text class="mono l l1" xml:space="preserve" x="30" y="150" font-size="14"><tspan class="muted">  wish: </tspan><tspan class="ink">pdf-data-extraction   </tspan><tspan class="violet">-&gt; pdf-processing        </tspan><tspan class="green">[MIT · verified]</tspan></text>
+  <text class="mono l l2" xml:space="preserve" x="30" y="180" font-size="14"><tspan class="muted">  wish: </tspan><tspan class="ink">data-cleaning         </tspan><tspan class="violet">-&gt; data-cleaning         </tspan><tspan class="green">[MIT · verified]</tspan></text>
+  <text class="mono l l3" xml:space="preserve" x="30" y="210" font-size="14"><tspan class="muted">  wish: </tspan><tspan class="ink">chat-notification     </tspan><tspan class="violet">-&gt; slack                 </tspan><tspan class="green">[MIT · verified, </tspan><tspan class="amber">235★</tspan><tspan class="green">]</tspan></text>
+  <text class="mono l l4 muted" xml:space="preserve" x="30" y="236" font-size="14">  ...</text>
+
+  <!-- install prompt -->
+  <text class="mono l l5" xml:space="preserve" x="30" y="290" font-size="14"><tspan class="violet">  ✦ </tspan><tspan class="soft">Install these 3? They'll go in </tspan><tspan class="ink">.claude/skills/</tspan><tspan class="soft"> with license + source.</tspan></text>
+  <g class="l l5">
+    <rect x="30" y="306" width="86" height="30" rx="15" fill="#7C5CDB"/>
+    <text x="73" y="326" text-anchor="middle" class="mono" font-size="13" fill="#FFFFFF">Install</text>
+    <rect x="126" y="306" width="86" height="30" rx="15" fill="none" stroke="#1E1B16" stroke-opacity="0.25"/>
+    <text x="169" y="326" text-anchor="middle" class="mono soft" font-size="13">Reject</text>
+  </g>
+</svg>

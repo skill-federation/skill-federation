@@ -2,9 +2,20 @@
 
 # Skill Federation
 
-### The trusted skill layer for AI agents.
+### The trusted skill layer for AI agents
 
-**Find vetted agent skills for the task in front of you — without sending your work to anyone.**
+[![License](https://img.shields.io/github/license/skill-federation/skill-federation?color=7C5CDB)](LICENSE)
+![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-8A8377)
+![Runtime](https://img.shields.io/badge/runtime-none%20(curl)-2E9E6B)
+![Data sent](https://img.shields.io/badge/data%20sent-abstract%20wishes%20only-7C5CDB)
+![SkillsBench](https://img.shields.io/badge/SkillsBench-%2B30%25%20vs%20bare%20agent-E07A55)
+[![Stars](https://img.shields.io/github/stars/skill-federation/skill-federation?style=flat&color=E8C24A&logo=github&logoColor=white)](https://github.com/skill-federation/skill-federation/stargazers)
+
+<a href="https://skill-federation.github.io/"><img src="assets/demo.svg" alt="Running /skillfed for monthly vendor-invoice reconciliation returns three vetted skill matches to install" width="720"></a>
+
+**Your agent asks. Skill Federation answers. You approve.**
+
+*A bare agent solves 17.5% of SkillsBench tasks. With Skill Federation, 22.8% — and your work never leaves your machine.*
 
 </div>
 
@@ -21,6 +32,15 @@ your agent writes an abstract **wish-list** — "if every skill existed, which w
 — and the federation matches those wishes against a catalog of vetted skills. Your plan, your
 files, and your outputs never leave your machine. Only the abstract wishes do.
 
+> [!IMPORTANT]
+> **Only the abstract wish crosses the boundary** — a one-line capability description, a few
+> vocabulary-varied paraphrases, 1–5 keywords, and a capability-level *sketch* of the ideal
+> skill. Every field is "what skill should exist," never your task. Your plan, brief, file
+> contents, and reasoning trace stay local — **always**.
+
+<details>
+<summary>Prefer plain text? Here's the same run</summary>
+
 ```
 You: /skillfed automate monthly vendor-invoice reconciliation
 
@@ -32,7 +52,9 @@ You: /skillfed automate monthly vendor-invoice reconciliation
   Install these 3? They'll go in .claude/skills/ with license + source attribution.
 ```
 
-## Why it's different
+</details>
+
+## 🔒 Why it's different
 
 - **Privacy floor, by design.** Only the abstract wish crosses the boundary — a one-line
   capability description, a few vocabulary-varied paraphrases of it, 1–5 keywords, and a
@@ -44,7 +66,17 @@ You: /skillfed automate monthly vendor-invoice reconciliation
   and macOS. No Python, no Node, no package manager. (Optional tiers add typed MCP tools if you
   have Node.)
 
-## How it works
+## ⚙️ How it works
+
+```mermaid
+flowchart LR
+    P[Approve a plan] --> W[Agent writes<br/>abstract wishes]
+    W -->|only wishes cross| F((Federation<br/>match))
+    F --> R[Trust review —<br/>you approve]
+    R --> I[Install to<br/>.claude/skills/]
+    I --> U[Agent uses<br/>the skill]
+    L[(Your plan, files,<br/>outputs)] -.->|never leave| P
+```
 
 1. **Plan.** You approve a plan in your agent as usual.
 2. **Wish-list.** The agent sketches the ideal skills and writes up to 10 abstract wishes — each
@@ -57,18 +89,25 @@ You: /skillfed automate monthly vendor-invoice reconciliation
    full license + source attribution.
 6. **Use.** Your agent uses the skill immediately — no reinventing it.
 
-## Benchmark
+## 📊 Benchmark
+
+<div align="center">
+
+<img src="assets/benchmark.svg" alt="SkillsBench task success: no skill 17.5%, Skill Federation 22.8%, oracle 36.8%" width="660">
+
+</div>
 
 We measured Skill Federation on **SkillsBench** (coding-agent tasks with deterministic verifiers),
 with the agent harnessed as **Claude Code (Opus 4.6)**. The catch that makes this a real test:
-the skill Skillfed retrieves comes from a **26,629-skill public catalog that does not contain the
-benchmark's own answer skills** — so this measures whether *independently authored* skills transfer
-to the task, not whether we can re-find the benchmark's hand-written one.
+the skill Skillfed retrieves comes from a **26,629-skill snapshot of the public catalog** (which
+holds 100k+ skills overall) **with the benchmark's own answer skills removed** — so this measures
+whether *independently authored* skills transfer to the task, not whether we can re-find the
+benchmark's hand-written one.
 
 | Condition | What the agent gets | Success |
 |---|---|---|
 | No skill | bare Claude Code (Opus 4.6) | 17.5% |
-| **Skillfed** | top skill retrieved from the 26,629-skill wild catalog | **22.8%** |
+| **Skillfed** | top skill retrieved from the 26,629-skill snapshot | **22.8%** |
 | Oracle | the task's own hand-written skill — an unreachable upper bound | 36.8% |
 
 Skillfed lifts success **from 17.5% to 22.8% — a ~30% relative gain** over the bare agent, and
@@ -76,7 +115,7 @@ recovers **~27% of the gap** to an oracle skill it never sees. Most skill-retrie
 *oracle-recovery* (the benchmark's own skill sits in the pool); this tests *transfer* — useful
 skills pulled from a large, noisy public catalog.
 
-## Install
+## 📦 Install
 
 From this repo's root:
 
@@ -89,11 +128,15 @@ From this repo's root:
 chmod +x install.sh && ./install.sh
 ```
 
-Then **restart Claude Code** and run `/skillfed <what you're trying to do>` — or just approve a
-plan and the finder offers itself automatically.
+> [!TIP]
+> Then **restart Claude Code** and run `/skillfed <what you're trying to do>` — or just approve
+> a plan and the finder offers itself automatically.
 
 The installer auto-detects your machine and always installs the **curl** tier (zero runtime).
 Opt into more with flags:
+
+<details>
+<summary>Optional tiers (hook · npx MCP · python)</summary>
 
 | Tier | Needs | Enable | Gets you |
 |---|---|---|---|
@@ -102,10 +145,19 @@ Opt into more with flags:
 | **npx** (Node MCP) | Node >= 18 | `--with-npx` / `-WithNpx` | Claude calls typed `find_skills` tools, no shell-out |
 | **python** | a Python interpreter | `--with-python` / `-WithPython` | the advanced / CI helper path |
 
+</details>
+
 See [`install.md`](install.md) for options, scopes, and safety details (it backs up and merges
 config, never clobbers).
 
-## Privacy & trust
+## 🛡️ Privacy & trust
+
+> [!NOTE]
+> **What never crosses:** your plan, brief, file contents, outputs, or reasoning trace.
+> **What does:** only the abstract wish (description + paraphrases + keywords + capability sketch).
+
+<details>
+<summary>The full field-by-field breakdown</summary>
 
 - **What crosses the boundary:** the abstract wish — its one-line `description`, ~4 paraphrased
   `formulations` of it, 1–5 `keywords`, and a structured **capability `sketch`** of the ideal skill
@@ -123,7 +175,9 @@ config, never clobbers).
 - **Local-first:** if you already have a skill installed, your local copy is used as-is — your
   edits are personalization, never silently overwritten.
 
-## Configuration
+</details>
+
+## 🔧 Configuration
 
 The finder talks to a federation endpoint over HTTPS. Default is a keyless demo; override it:
 
@@ -131,7 +185,7 @@ The finder talks to a federation endpoint over HTTPS. Default is a keyless demo;
 export SKILLFED_ENDPOINT="https://your-federation.example.com"   # or set in .mcp.json for the npx tier
 ```
 
-## What's in this repo
+## 📁 What's in this repo
 
 ```
 install.ps1 / install.sh / install.md   one-command, auto-detecting installer
@@ -140,6 +194,6 @@ integrations/*.py                       optional Python tier (advanced / CI)
 mcp-server/                             optional Node MCP tier (typed tools via npx)
 ```
 
-## License
+## 📄 License
 
 [MIT](LICENSE) © Skill Federation.
