@@ -35,8 +35,9 @@ You: /skillfed automate monthly vendor-invoice reconciliation
 ## Why it's different
 
 - **Privacy floor, by design.** Only the abstract wish crosses the boundary — a one-line
-  capability description, a few vocabulary-varied paraphrases of it, and 1–5 keywords. Your plan,
-  brief, file contents, and reasoning trace stay local — always.
+  capability description, a few vocabulary-varied paraphrases of it, 1–5 keywords, and a
+  capability-level sketch of the ideal skill (all "what skill should exist", never your task).
+  Your plan, brief, file contents, and reasoning trace stay local — always.
 - **Trust before install.** Every candidate shows its license class, provenance, stars, source,
   and any security flags. *You* approve each install. Nothing is pulled silently.
 - **Native, zero-install.** The default tier needs nothing but `curl` — already on Windows 10+
@@ -46,9 +47,11 @@ You: /skillfed automate monthly vendor-invoice reconciliation
 ## How it works
 
 1. **Plan.** You approve a plan in your agent as usual.
-2. **Wish-list.** The agent privately sketches the ideal skills and writes up to 10 abstract
-   wishes — each with vocabulary-varied paraphrases for high recall. No task specifics.
-3. **Match.** The federation runs a fast lexical search per wish and returns the top candidates.
+2. **Wish-list.** The agent sketches the ideal skills and writes up to 10 abstract wishes — each
+   with vocabulary-varied paraphrases and a structured capability sketch for high recall. No task
+   specifics.
+3. **Match.** The federation runs a fast lexical search per wish (description + paraphrases +
+   flattened sketch) and returns the top candidates.
 4. **Review.** The agent picks the best fit (or rejects all) and shows you a trust table.
 5. **Install.** On your approval, the chosen skills are fetched into `.claude/skills/` with
    full license + source attribution.
@@ -105,10 +108,13 @@ config, never clobbers).
 ## Privacy & trust
 
 - **What crosses the boundary:** the abstract wish — its one-line `description`, ~4 paraphrased
-  `formulations` of it (for search recall), and 1–5 `keywords`; and, when no skill is found, a
-  condensed **capability sketch** of the *missing* skill (a short structured string — abstract enough
-  to protect you, detailed enough to auto-build the skill). The wish's `name` is display-only and is
-  not sent.
+  `formulations` of it, 1–5 `keywords`, and a structured **capability `sketch`** of the ideal skill
+  (`purpose / inputs / outputs / operations / domain_vocab / section_sketch / tags`). The sketch's
+  flattened terms ride inside the search query on every search (they supply the discriminative
+  vocabulary that drives recall); when no skill is found, that same sketch becomes the demand
+  pointer — abstract enough to protect you, detailed enough to auto-build the missing skill. Every
+  field is "what skill should exist", never your task. The wish's `name` is display-only and is not
+  sent.
 - **What never crosses:** your plan, brief, file contents, outputs, or reasoning trace.
 - **Two complementary signals, not conflated:** a `report_selection` labels retrieval quality
   (which shown candidates were right or wrong); a `report_demand` captures the capability gap (what

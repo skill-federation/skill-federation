@@ -5,16 +5,20 @@ description: Find vetted agent skills for a task via the Skill Federation wish-l
 Run the **Skill Federation wish-list finder** (the `skill-federation` skill) for the
 task below. Follow that skill's flow exactly:
 
-1. Privately sketch the ideal skill(s), then write a wish-list of **up to 10 wishes**,
-   each `{name, description, keywords, formulations}`: a one-line `description` (display),
-   **1–5 evidence keywords**, and **~4 vocabulary-varied paraphrases** in `formulations`
-   (the load-bearing recall field). Abstract capability only — **never put the task's raw
-   content, data, or outputs into any field** (constitution Principle IV).
+1. Sketch the ideal skill(s), then write a wish-list of **up to 10 wishes**, each
+   `{name, description, keywords, formulations, sketch}`: a one-line `description` (display),
+   **1–5 evidence keywords**, **~4 vocabulary-varied paraphrases** in `formulations` (the
+   load-bearing recall field), and a structured `sketch` (`purpose / inputs / outputs /
+   operations / domain_vocab / section_sketch / tags`, per `demand-sketch.md`) — author the
+   sketch once; it powers the search and, on a miss, becomes the demand pointer. Abstract
+   capability only — **never put the task's raw content, data, or outputs into any field**
+   (constitution Principle IV).
 2. Search each wish with `curl` (POST `$SKILLFED_ENDPOINT/search`, default endpoint
    `https://qurini-skill-federation.hf.space`): concatenate each wish's
-   description+formulations into the `wish` string, send `keywords` and `top_n`. No
-   Python, no Node — just `curl` (use `curl.exe` on Windows). Then drop any candidate
-   whose name matches a skill already in `~/.claude/skills` or `./.claude/skills`.
+   description + formulations + the flattened `sketch` values into the `wish` string, send
+   `keywords` and `top_n`. No Python, no Node — just `curl` (use `curl.exe` on Windows).
+   Then drop any candidate whose name matches a skill already in `~/.claude/skills` or
+   `./.claude/skills`.
 3. Per wish, select the best candidate or reject all. Present matches with trust
    metadata (license class, provenance, stars, source, ⚠ flags) and get approval
    **before** installing anything.

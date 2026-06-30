@@ -7,21 +7,33 @@ each `{name, description, keywords[1–5], formulations[K paraphrases]}` (data-m
 Wish, Principle I) — and this helper runs ONE search PER WISH, CONCURRENTLY, then
 normalizes + de-dupes the results.
 
-Per-wish query = the display `description` + up to K paraphrased `formulations`
-concatenated into ONE BM25 query. BM25 is bag-of-words, so concatenation is a
-term-union "expected-response sketch" (SIRA) — empirically it matches a K-request
-RRF ensemble on recall@3 at 1/K the cost, no fusion. The one-liner `description`
-stays human-facing (the wish→match table); the formulations carry the lexical recall.
+Per-wish query = the display `description` + up to K paraphrased `formulations` +
+the flattened structured `sketch` (SIRA's expected-response sketch — purpose / inputs /
+outputs / operations / domain_vocab / section_sketch / tags), all concatenated into ONE
+BM25 query. BM25 is bag-of-words, so concatenation is a term-union query — empirically it
+matches a K-request RRF ensemble on recall@3 at 1/K the cost, no fusion. The one-liner
+`description` stays human-facing (the wish→match table); the formulations carry lexical
+recall; the sketch supplies the rare, discriminative vocabulary a matching SKILL.md would
+contain (this is SIRA step iii — the full sketch vocabulary in the single weighted query,
+not the 1–5-keyword sliver the earlier design reserved for the failure path). The same
+structured `sketch` rides on the wish so the miss path emits it as the demand pointer with
+no re-derivation (demand-sketch.md).
+
+NOTE (tradeoff): appended sketch terms ride in the `wish` field at the server's wish weight
+(1.0), not SIRA's 0.5 expansion lane, because the hosted demo's only weight-1.0 channel is
+`wish`. When we own the server, move sketch vocab to the 0.5 lane + df-prune. Keep the
+sketch terse (domain_vocab-heavy) to avoid diluting precision.
 
 The spec's `find_skills` takes the whole wish-list in one batched call; qurini's hosted
 demo only exposes a per-wish `/search`, so we emulate the batch by fanning out async
 across WISHES (ThreadPoolExecutor — `urllib` is blocking). Swap `SKILLFED_ENDPOINT`
 to our own federation core later and this same helper keeps working (the client seam).
 
-PRIVACY (constitution Principle IV): only each wish's description, its paraphrased
-formulations, and keywords cross the boundary (name is display-only and stays local).
-The plan, brief, outputs, and reasoning trace never do — they are not even passed to
-this script.
+PRIVACY (constitution Principle IV): each wish's description, its paraphrased
+formulations, keywords, AND its structured capability sketch cross the boundary on every
+search (name is display-only and stays local). Every field stays at the "what skill should
+exist" abstraction — the same floor as a wish. The plan, brief, outputs, and reasoning
+trace never cross — they are not even passed to this script.
 
 Usage:
   python search_wishlist.py wishlist.json
@@ -41,9 +53,9 @@ Output (stdout): JSON
     "n_wishes": 4,
     "results": [
       {
-        "wish": {"name","description","keywords","formulations"},
+        "wish": {"name","description","keywords","formulations","sketch"},
         "query_id": "q_...",            # preserved for per-wish report_selection
-        "query_text": "<description + formulations, concatenated>",
+        "query_text": "<description + formulations + flattened sketch, concatenated>",
         "candidates": [ <normalized, deduped, ≤top_n> ],
         "already_installed": ["name", ...],
         "empty": false,                  # TRUE only on genuine empty retrieval → demand
@@ -105,7 +117,49 @@ def _load_wishlist() -> list[dict]:
                   "generation is part of the ask, not optional")
         w["name"], w["description"], w["keywords"] = name, desc, kw
         w["formulations"] = forms[:K]  # cap at K paraphrases; empty → description-only
+        w["sketch"] = _norm_sketch(w.get("sketch"))  # optional; {} → behaves like today
     return wishlist
+
+
+# Structured expected-response sketch (SIRA step i) — the demand-sketch.md schema.
+# Optional on the wire: a wish with no sketch reproduces the pre-sketch query exactly.
+_SKETCH_STR_FIELDS = ("purpose", "section_sketch")
+_SKETCH_LIST_FIELDS = ("inputs", "outputs", "operations", "domain_vocab", "tags")
+
+
+def _norm_sketch(raw) -> dict:
+    """Coerce a wish's `sketch` into the canonical shape; non-dict/empty → {}."""
+    if not isinstance(raw, dict):
+        return {}
+    out: dict = {}
+    for f in _SKETCH_STR_FIELDS:
+        v = (raw.get(f) or "")
+        if isinstance(v, str) and v.strip():
+            out[f] = v.strip()
+    for f in _SKETCH_LIST_FIELDS:
+        vals = [str(x).strip() for x in (raw.get(f) or []) if str(x).strip()]
+        if vals:
+            out[f] = vals
+    return out
+
+
+def _flatten_sketch(sketch: dict) -> list[str]:
+    """Sketch → flat list of term-phrases for the bag-of-words query (values only, no
+    JSON keys/punctuation). domain_vocab/operations first — the discriminative vocab SIRA
+    rewards; purpose/section_sketch/tags trail. Order only affects dedup precedence."""
+    if not sketch:
+        return []
+    parts: list[str] = []
+    parts.extend(sketch.get("domain_vocab", []))
+    parts.extend(sketch.get("operations", []))
+    parts.extend(sketch.get("inputs", []))
+    parts.extend(sketch.get("outputs", []))
+    if sketch.get("purpose"):
+        parts.append(sketch["purpose"])
+    if sketch.get("section_sketch"):
+        parts.append(sketch["section_sketch"])
+    parts.extend(sketch.get("tags", []))
+    return [p for p in parts if p]
 
 
 def _normalize(c: dict) -> dict:
@@ -134,9 +188,12 @@ def _search_one(wish: dict, installed: set[str]) -> dict:
     out = {"wish": wish, "query_id": None, "query_text": None, "candidates": [],
            "already_installed": [], "empty": False, "error": None}
     # BM25 is bag-of-words: concatenate display description + up to K paraphrased
-    # formulations into ONE term-union query (matches a K-request RRF ensemble at 1/K
-    # the cost). keywords ride along (@0.5 server-side).
-    parts = [wish["description"], *wish.get("formulations", [])]
+    # formulations + the flattened structured sketch (SIRA step iii — the full
+    # expected-response vocabulary in the single weighted query) into ONE term-union
+    # query (matches a K-request RRF ensemble at 1/K the cost). keywords ride along
+    # (@0.5 server-side); appended sketch terms ride at wish weight (1.0) — see module docstring.
+    parts = [wish["description"], *wish.get("formulations", []),
+             *_flatten_sketch(wish.get("sketch", {}))]
     query_text = " ".join(dict.fromkeys(p for p in parts if p))  # dedup, keep order
     out["query_text"] = query_text
     try:

@@ -9,7 +9,16 @@
         "dedupe rows and coerce column types in a dataset",
         "handle missing values and standardize a dataframe",
         "sanitize a CSV export into a tidy validated dataset"
-      ]
+      ],
+      "sketch": {
+        "purpose": "Clean and normalize a messy CSV into a tidy, schema-valid dataset",
+        "inputs": ["raw CSV / tabular export", "optional target schema"],
+        "outputs": ["validated tidy dataframe", "rejected/coerced rows report"],
+        "operations": ["parse", "dedupe rows", "coerce dtypes", "impute missing values", "validate against schema"],
+        "domain_vocab": ["dataframe", "schema validation", "dtype coercion", "deduplication", "null handling", "tidy data"],
+        "section_sketch": "Overview · Load · Schema · Clean · Validate · Export",
+        "tags": ["data-cleaning", "csv", "etl"]
+      }
     },
     {
       "name": "xlsx-report-builder",

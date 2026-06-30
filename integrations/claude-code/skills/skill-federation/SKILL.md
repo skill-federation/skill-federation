@@ -11,13 +11,15 @@ across the boundary**. You reason about the *ideal* skills for the task, emit an
 abstract wish-list, and the federation matches those wishes against its catalog.
 
 > **Privacy floor (constitution Principle IV) — non-negotiable.** What leaves the machine is only
-> the abstract wish — its one-line `description`, its ~4 paraphrased `formulations`, and 1–5
-> `keywords` — and, on a miss, a capability `sketch` (a condensed, capability-level string per
-> [demand-sketch.md](demand-sketch.md)). (The wish `name` is display-only and stays
-> local; the search payload is the concatenated description + formulations, plus keywords.) The
-> plan, brief, outputs, file contents, and your reasoning trace MUST NOT appear in any description,
-> formulation, keyword, sketch, or search payload. If you can't phrase a need without quoting the
-> user's content, abstract it until you can.
+> the abstract wish — its one-line `description`, its ~4 paraphrased `formulations`, 1–5
+> `keywords`, and its structured capability `sketch` (per [demand-sketch.md](demand-sketch.md)).
+> The sketch's flattened terms ride **inside the search query on every search** (and on a miss the
+> same sketch is the demand pointer). (The wish `name` is display-only and stays local; the search
+> payload is the concatenated description + formulations + flattened sketch, plus keywords.) Every
+> field stays at the "what skill should exist" abstraction. The plan, brief, outputs, file
+> contents, and your reasoning trace MUST NOT appear in any description, formulation, keyword,
+> sketch, or search payload. If you can't phrase a need without quoting the user's content,
+> abstract it until you can.
 
 ## When to use
 
@@ -60,29 +62,39 @@ post-use signals; that's out of scope for the finder.)
 
 ### Hop 1 — search
 
-1. **Form an expected-response sketch, then a wish-list.** For the task, privately
-   imagine the *ideal* skill(s): what each would do, its inputs/outputs, the key
-   operations, and the discriminative vocabulary its SKILL.md would contain. That
-   sketch stays in your context (it seeds keywords + formulations now, and becomes the
-   demand sketch on a miss). Then write **up to 10 wishes** — fewer is fine — each:
-   - `name`: short hypothetical skill name,
+1. **Form an expected-response sketch, then a wish-list.** For the task, imagine the
+   *ideal* skill(s): what each would do, its inputs/outputs, the key operations, and the
+   discriminative vocabulary its SKILL.md would contain. Emit that sketch as a real
+   `sketch` field on each wish (it powers the search query *and* becomes the demand
+   pointer on a miss — author it once, per [demand-sketch.md](demand-sketch.md)). Then
+   write **up to 10 wishes** — fewer is fine — each:
+   - `name`: short hypothetical skill name (display-only, stays local),
    - `description`: **one line** for display only (the wish→match table) — abstract, no
      plan specifics,
    - `keywords`: **1–5 required** evidence terms the description omits but the target
-     skill's docs would contain (derived from your sketch),
+     skill's docs would contain (the discriminative subset of `sketch.domain_vocab`),
    - `formulations`: **~4 paraphrases** of the description with *deliberately varied
-     vocabulary* (synonyms, alternate framings). This is the load-bearing field for
-     recall — a single phrasing misses ~20% of the time; 4 concatenated paraphrases
-     erase that (BM25 is bag-of-words, so they form a robust term-union query). Keep
-     each abstract; never quote the plan/brief.
+     vocabulary* (synonyms, alternate framings). The load-bearing recall field — a single
+     phrasing misses ~20% of the time; 4 concatenated paraphrases erase that (BM25 is
+     bag-of-words, so they form a robust term-union query). Keep each abstract; never
+     quote the plan/brief.
+   - `sketch`: the structured expected-response sketch — `purpose / inputs / outputs /
+     operations / domain_vocab / section_sketch / tags` (demand-sketch.md schema). Its
+     flattened term values are appended to the search query, so the single BM25 call sees
+     the full discriminative vocabulary a matching SKILL.md would contain (SIRA step iii),
+     not just the 1–5 keywords. Keep it terse and capability-level — never task data.
 
 2. **Search each wish with `curl` (`/search`).** For each wish, concatenate its
-   `description` + `formulations` into ONE bag-of-words query string (BM25 is bag-of-words,
-   so the concatenation is a robust term-union — matches a K-request ensemble at 1/K the
-   cost). Write the request body to a temp file and POST it:
+   `description` + `formulations` + the flattened `sketch` term values into ONE
+   bag-of-words query string (BM25 is bag-of-words, so the concatenation is a robust
+   term-union — matches a K-request ensemble at 1/K the cost; the sketch supplies the rare,
+   discriminative vocabulary SIRA rewards). Flatten the sketch to its *values* only
+   (`domain_vocab`, `operations`, `inputs`, `outputs`, `purpose`, `section_sketch`, `tags`)
+   — never JSON keys or punctuation. Write the request body to a temp file and POST it:
 
    ```bash
-   # body.json  →  { "tenant":"local", "wish":"<description + the formulations, space-joined>",
+   # body.json  →  { "tenant":"local",
+   #                 "wish":"<description + formulations + flattened sketch, space-joined>",
    #                 "keywords":["1-5","evidence","terms"], "top_n":3 }
    curl.exe -s --max-time 20 -X POST "$SKILLFED_ENDPOINT/search" \
      -H "Content-Type: application/json" --data-binary "@body.json"
@@ -155,7 +167,7 @@ post-use signals; that's out of scope for the finder.)
    (it is a STRING, not an object; the endpoint's `sketch` field is a string):
    ```bash
    # body.json  →  { "tenant":"local",
-   #   "wish":"<the description + formulations you searched>",
+   #   "wish":"<the description + formulations + flattened sketch you searched>",
    #   "sketch":"<query_id>: {\"purpose\":\"…\",\"inputs\":[…],\"outputs\":[…],\"operations\":[…],\"domain_vocab\":[…],\"section_sketch\":\"…\",\"tags\":[…],\"source\":\"unmatched_wish|all_rejected\"}" }
    curl.exe -s --max-time 20 -X POST "$SKILLFED_ENDPOINT/report_demand" \
      -H "Content-Type: application/json" --data-binary "@body.json"

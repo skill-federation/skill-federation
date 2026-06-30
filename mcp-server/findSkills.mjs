@@ -6,18 +6,24 @@
  * {name, description, keywords[1–5], formulations[K paraphrases]} — and this runs
  * ONE search PER WISH, CONCURRENTLY, then normalizes + de-dupes the results.
  *
- * Per-wish query = description + up to K paraphrased formulations concatenated
- * into ONE BM25 query. BM25 is bag-of-words, so concatenation is a term-union
- * "expected-response sketch" (SIRA) — empirically matches a K-request RRF
- * ensemble on recall@3 at 1/K the cost, no fusion. The one-line description stays
- * human-facing (the wish→match table); the formulations carry the lexical recall.
+ * Per-wish query = description + up to K paraphrased formulations + the flattened
+ * structured sketch (SIRA's expected-response sketch) concatenated into ONE BM25
+ * query. BM25 is bag-of-words, so concatenation is a term-union query — empirically
+ * matches a K-request RRF ensemble on recall@3 at 1/K the cost, no fusion. The
+ * one-line description stays human-facing (the wish→match table); the formulations
+ * carry lexical recall; the sketch supplies the rare, discriminative vocabulary a
+ * matching SKILL.md would contain (SIRA step iii — the full sketch vocabulary in the
+ * single weighted query, not the 1–5-keyword sliver). The same structured sketch
+ * rides on the wish so the miss path emits it as the demand pointer, no re-derivation.
  *
  * The spec's find_skills takes the whole wish-list in one call; qurini's hosted
  * demo only exposes per-wish /search, so we emulate the batch by fanning out with
  * Promise.all (replaces Python's ThreadPoolExecutor).
  *
- * PRIVACY (Principle IV): only each wish's description, paraphrased formulations, and
- * keywords cross the boundary. The plan, brief, outputs, and reasoning trace never do.
+ * PRIVACY (Principle IV): each wish's description, paraphrased formulations, keywords,
+ * AND its structured capability sketch cross the boundary on every search — all at the
+ * "what skill should exist" abstraction. The plan, brief, outputs, and reasoning trace
+ * never do.
  */
 
 import { federation, ENDPOINT } from "./federation.mjs";
@@ -67,8 +73,45 @@ function validateWishlist(input) {
       description,
       keywords,
       formulations: formulations.slice(0, K), // cap at K; empty → description-only
+      sketch: normSketch(w.sketch), // optional; {} → behaves like the pre-sketch query
     };
   });
+}
+
+// Structured expected-response sketch (SIRA step i) — the demand-sketch.md schema.
+// Optional on the wire: a wish with no sketch reproduces the pre-sketch query exactly.
+const SKETCH_STR_FIELDS = ["purpose", "section_sketch"];
+const SKETCH_LIST_FIELDS = ["inputs", "outputs", "operations", "domain_vocab", "tags"];
+
+/** Coerce a wish's `sketch` into the canonical shape; non-object/empty → {}. */
+function normSketch(raw) {
+  if (typeof raw !== "object" || raw === null || Array.isArray(raw)) return {};
+  const out = {};
+  for (const f of SKETCH_STR_FIELDS) {
+    const v = String(raw[f] || "").trim();
+    if (v) out[f] = v;
+  }
+  for (const f of SKETCH_LIST_FIELDS) {
+    const vals = (raw[f] || []).map((x) => String(x).trim()).filter(Boolean);
+    if (vals.length) out[f] = vals;
+  }
+  return out;
+}
+
+/** Sketch → flat list of term-phrases for the bag-of-words query (values only, no JSON
+ * keys/punctuation). domain_vocab/operations first — the vocab SIRA rewards. */
+function flattenSketch(sketch) {
+  if (!sketch) return [];
+  const parts = [
+    ...(sketch.domain_vocab || []),
+    ...(sketch.operations || []),
+    ...(sketch.inputs || []),
+    ...(sketch.outputs || []),
+  ];
+  if (sketch.purpose) parts.push(sketch.purpose);
+  if (sketch.section_sketch) parts.push(sketch.section_sketch);
+  parts.push(...(sketch.tags || []));
+  return parts.filter(Boolean);
 }
 
 /** qurini candidate → spec-ish candidate shape (mirrors _normalize). */
@@ -103,9 +146,15 @@ async function searchOne(wish, installed) {
     empty: false,
     error: null,
   };
-  // BM25 is bag-of-words: concatenate description + up to K formulations into ONE
-  // term-union query. Dedup parts while preserving order.
-  const parts = [wish.description, ...(wish.formulations || [])].filter(Boolean);
+  // BM25 is bag-of-words: concatenate description + up to K formulations + the
+  // flattened structured sketch (SIRA step iii) into ONE term-union query. keywords
+  // ride along (@0.5 server-side); appended sketch terms ride at wish weight (1.0).
+  // Dedup parts while preserving order.
+  const parts = [
+    wish.description,
+    ...(wish.formulations || []),
+    ...flattenSketch(wish.sketch),
+  ].filter(Boolean);
   const queryText = [...new Set(parts)].join(" ");
   out.query_text = queryText;
 

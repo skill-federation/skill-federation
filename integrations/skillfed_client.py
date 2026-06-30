@@ -17,8 +17,10 @@ ADAPTER NOTE (qurini endpoints ↔ our five MCP tools, contracts/federation-mcp-
   (no analogue)    ↔ submit_suggestion   (reflection loop — out of this first pass)
 
 PRIVACY (constitution Principle IV): callers MUST send only abstracted wishes
-(description + paraphrased formulations + keywords) and, on a miss, a capability sketch
-— never the user's plan, brief, output, or any tenant data.
+(description + paraphrased formulations + keywords + the structured capability sketch,
+which now rides inside the `wish` query string on every search) and, on a miss, that same
+sketch as the demand pointer — never the user's plan, brief, output, or any tenant data.
+Every field stays at the "what skill should exist" abstraction (the wish floor).
 
 Config (env):
   SKILLFED_ENDPOINT   if set, use the hosted API at this URL; else local core

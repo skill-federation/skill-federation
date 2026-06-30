@@ -52,6 +52,27 @@ const WISH_SCHEMA = {
       description:
         "~4 vocabulary-varied paraphrases of the description (the load-bearing recall field)",
     },
+    sketch: {
+      type: "object",
+      description:
+        "structured expected-response sketch (SIRA step i) — a capability-level hypothesis of " +
+        "the ideal skill. Its flattened terms are appended to the search query, and on a miss " +
+        "it is emitted unchanged as the demand pointer (see demand-sketch.md). " +
+        "Capability-level only — never the plan, brief, outputs, or any tenant data.",
+      properties: {
+        purpose: { type: "string", description: "one line — what the missing skill should do" },
+        inputs: { type: "array", items: { type: "string" } },
+        outputs: { type: "array", items: { type: "string" } },
+        operations: { type: "array", items: { type: "string" } },
+        domain_vocab: {
+          type: "array",
+          items: { type: "string" },
+          description: "discriminative domain terms a matching SKILL.md would contain",
+        },
+        section_sketch: { type: "string", description: "terse `·`-separated skill outline" },
+        tags: { type: "array", items: { type: "string" } },
+      },
+    },
   },
 };
 
