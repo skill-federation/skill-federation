@@ -135,16 +135,15 @@ restart Claude Code.
 > Then **restart Claude Code** and run `/skillfed <what you're trying to do>` — or just approve
 > a plan and the finder offers itself automatically.
 
-Every path installs the **curl tier** — zero runtime, the finder needs only `curl` (already on
-Win10+/macOS). `npx`/`uvx` add a versioned, auto-updating package pin; the curl tier works even on
-the standalone desktop build with no Node or Python. Opt into more with flags
-(`npx skillfed --with-hook`, or `curl … | bash -s -- --with-hook`):
+Zero runtime — the finder needs only `curl` (no Node or Python). For the optional tiers
+(auto-trigger hook · typed MCP tools · Python/CI helper), flags, scopes, installing from a
+checkout, and config-safety details, see [`install.md`](install.md).
 
 <details>
-<summary>Prefer the raw one-liner? (zero-runtime curl tier)</summary>
+<summary>Prefer to paste it yourself? (raw curl one-liner)</summary>
 
 ```powershell
-# Windows (PowerShell) — irm|iex also sidesteps the script-execution-policy block (nothing lands on disk)
+# Windows (PowerShell) — irm|iex also sidesteps the execution-policy block
 irm https://raw.githubusercontent.com/skill-federation/skill-federation/main/install.ps1 | iex
 ```
 ```bash
@@ -153,38 +152,6 @@ curl -fsSL https://raw.githubusercontent.com/skill-federation/skill-federation/m
 ```
 
 </details>
-
-<details>
-<summary>Optional tiers (hook · npx MCP · python)</summary>
-
-| Tier | Needs | Enable | Gets you |
-|---|---|---|---|
-| **curl** (default) | nothing (`curl` ships with Win10+/macOS) | *always* | the finder skill + `/skillfed`, runtime-free |
-| **hook** | nothing | `--with-hook` / `-WithHook` | auto-nudge right after a plan is approved |
-| **npx** (Node MCP) | Node >= 18 | `--with-npx` / `-WithNpx` | Claude calls typed `find_skills` tools, no shell-out |
-| **python** | a Python interpreter | `--with-python` / `-WithPython` | the advanced / CI helper path |
-
-</details>
-
-<details>
-<summary>From a checkout instead</summary>
-
-```powershell
-# Windows (PowerShell)
-.\install.ps1
-```
-```bash
-# macOS / Linux
-chmod +x install.sh && ./install.sh
-```
-
-The same scripts power the one-liners above: run from a clone they copy the files locally; piped
-from the network they fetch them from raw GitHub. Either way the runtime needs only `curl`.
-
-</details>
-
-See [`install.md`](install.md) for options, scopes, flag-passing, and safety details (it backs up
-and merges config, never clobbers).
 
 ## 🛡️ Privacy & trust
 
