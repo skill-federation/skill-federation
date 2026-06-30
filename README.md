@@ -2,7 +2,7 @@
 
 # Skill Federation
 
-### The trusted skill layer for AI agents
+### Free, private skill search for AI agents
 
 [![npm](https://img.shields.io/npm/v/skillfed?logo=npm&logoColor=white&color=CB3837&label=npx%20skillfed)](https://www.npmjs.com/package/skillfed)
 [![PyPI](https://img.shields.io/pypi/v/skillfed?logo=pypi&logoColor=white&color=3775A9&label=uvx%20skillfed)](https://pypi.org/project/skillfed/)
@@ -58,10 +58,9 @@ You: /skillfed automate monthly vendor-invoice reconciliation
 
 ## 🔒 Why it's different
 
-- **Privacy floor, by design.** Only the abstract wish crosses the boundary — a one-line
-  capability description, a few vocabulary-varied paraphrases of it, 1–5 keywords, and a
-  capability-level sketch of the ideal skill (all "what skill should exist", never your task).
-  Your plan, brief, file contents, and reasoning trace stay local — always.
+- **Privacy floor, by design.** Only the abstract wish crosses the boundary — "what skill should
+  exist," never your task. Your plan, brief, file contents, and reasoning trace stay local,
+  always. (Full field-by-field breakdown under **Privacy & trust** below.)
 - **Trust before install.** Every candidate shows its license class, provenance, stars, source,
   and any security flags. *You* approve each install. Nothing is pulled silently.
 - **Native, zero-install.** The default tier needs nothing but `curl` — already on Windows 10+
@@ -70,15 +69,9 @@ You: /skillfed automate monthly vendor-invoice reconciliation
 
 ## ⚙️ How it works
 
-```mermaid
-flowchart LR
-    P[Approve a plan] --> W[Agent writes<br/>abstract wishes]
-    W -->|only wishes cross| F((Federation<br/>match))
-    F --> R[Trust review —<br/>you approve]
-    R --> I[Install to<br/>.claude/skills/]
-    I --> U[Agent uses<br/>the skill]
-    L[(Your plan, files,<br/>outputs)] -.->|never leave| P
-```
+<div align="center">
+  <img src="assets/howitworks.svg" alt="On your machine the agent approves a plan and writes abstract wishes; only the abstract wish crosses the boundary to the federation, which returns ranked candidates; you approve, the skill installs to .claude/skills/, and the agent uses it — your plan, files, and outputs never leave" width="760">
+</div>
 
 1. **Plan.** You approve a plan in your agent as usual.
 2. **Wish-list.** The agent sketches the ideal skills and writes up to 10 abstract wishes — each
@@ -119,32 +112,47 @@ skills pulled from a large, noisy public catalog.
 
 ## 📦 Install
 
-**No clone needed — one line.** Pick whichever fits your machine:
+**One line — no clone needed.** You've already got Node or Python:
 
-```powershell
-# Windows (PowerShell) — also sidesteps the script-execution-policy block (nothing lands on disk)
-irm https://raw.githubusercontent.com/skill-federation/skill-federation/main/install.ps1 | iex
-```
 ```bash
-# macOS / Linux
-curl -fsSL https://raw.githubusercontent.com/skill-federation/skill-federation/main/install.sh | bash
-```
-```bash
-# have Node ≥18 (ships with the Claude Code npm CLI)?  versioned, auto-updating:
+# Node — npm
 npx skillfed
+```
+```bash
+# Python — uv   (or:  pipx run skillfed)
+uvx skillfed
+```
 
-# have uv / pipx?  same, for Python shops & CI:
-uvx skillfed            # or:  pipx run skillfed
+**No Node or Python?** Ask Claude Code to install the curl version for you:
+
+```text
+Install the Skill Federation /skillfed finder from github.com/skill-federation/skill-federation
+— run its curl installer (install.ps1 on Windows, install.sh on macOS/Linux), then tell me to
+restart Claude Code.
 ```
 
 > [!TIP]
 > Then **restart Claude Code** and run `/skillfed <what you're trying to do>` — or just approve
 > a plan and the finder offers itself automatically.
 
-All paths install the **curl** tier (zero runtime — the finder needs only `curl`, already on
-Win10+/macOS). The curl/`irm` bootstrap is the truest fit (no Node, no Python, works on the
-standalone desktop build); `npx`/`uvx` add a versioned, auto-updating package pin. Opt into more
-with flags (`npx skillfed --with-hook`, or `curl … | bash -s -- --with-hook`):
+Every path installs the **curl tier** — zero runtime, the finder needs only `curl` (already on
+Win10+/macOS). `npx`/`uvx` add a versioned, auto-updating package pin; the curl tier works even on
+the standalone desktop build with no Node or Python. Opt into more with flags
+(`npx skillfed --with-hook`, or `curl … | bash -s -- --with-hook`):
+
+<details>
+<summary>Prefer the raw one-liner? (zero-runtime curl tier)</summary>
+
+```powershell
+# Windows (PowerShell) — irm|iex also sidesteps the script-execution-policy block (nothing lands on disk)
+irm https://raw.githubusercontent.com/skill-federation/skill-federation/main/install.ps1 | iex
+```
+```bash
+# macOS / Linux
+curl -fsSL https://raw.githubusercontent.com/skill-federation/skill-federation/main/install.sh | bash
+```
+
+</details>
 
 <details>
 <summary>Optional tiers (hook · npx MCP · python)</summary>
