@@ -42,3 +42,4 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: python-installer/dist
+          skip-existing: true        # re-runs (e.g. re-firing the tag for npm) no-op instead of failing
