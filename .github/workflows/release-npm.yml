@@ -1,0 +1,47 @@
+name: Release · npm (skillfed + skillfed-mcp)
+
+# Publishes the two npm packages: `skillfed` (installer/) and `skillfed-mcp` (mcp-server/).
+#
+# FIRST release needs a token: npm only lets you configure OIDC Trusted Publishing AFTER a
+# package has ≥1 published version (https://docs.npmjs.com/trusted-publishers/). So v0.1.0
+# authenticates with a granular automation token stored as the NPM_TOKEN repo secret (never in
+# code or chat). After it lands, register a Trusted Publisher on each package, bump npm to
+# ≥11.5.1 in this workflow, and delete the NODE_AUTH_TOKEN lines + the secret — releases then
+# go fully tokenless (provenance is automatic under OIDC).
+#
+# Trigger: push a version tag (v0.1.0, …) or run manually.
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  npm:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write          # signs provenance attestations (and OIDC once TP is configured)
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      # `npm publish` in installer/ runs its prepack -> scripts/vendor-payload.mjs, so the
+      # payload is vendored into the tarball automatically.
+      - name: Publish skillfed (installer/)
+        working-directory: installer
+        run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish skillfed-mcp (mcp-server/)
+        working-directory: mcp-server
+        run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

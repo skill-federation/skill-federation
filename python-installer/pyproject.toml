@@ -1,0 +1,29 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "skillfed"
+version = "0.1.0"
+description = "No-clone installer for Skill Federation — drops the curl-tier finder skill + /skillfed command into ~/.claude. Run via `uvx skillfed` or `pipx run skillfed`. Stdlib only, zero deps."
+readme = "README.md"
+requires-python = ">=3.9"
+license = "MIT"
+keywords = ["skill-federation", "skillfed", "claude-code", "agent-skills", "installer"]
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/skill-federation/skill-federation"
+Repository = "https://github.com/skill-federation/skill-federation"
+
+[project.scripts]
+skillfed = "skillfed.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/skillfed"]
+
+# The payload is vendored from integrations/claude-code/ by scripts/vendor-payload.mjs and is
+# git-ignored, so hatchling's VCS-aware file selection would skip it. `artifacts` force-includes
+# it into both the sdist and the wheel. Run `node scripts/vendor-payload.mjs` before building.
+[tool.hatch.build]
+artifacts = ["src/skillfed/payload/*"]

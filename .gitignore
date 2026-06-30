@@ -1,11 +1,20 @@
 # Node
 node_modules/
 npm-debug.log*
+*.tgz
 
 # Python
 __pycache__/
 *.pyc
 .venv/
+dist/
+build/
+*.egg-info/
+
+# Vendored payload — copied from integrations/claude-code/ by scripts/vendor-payload.mjs.
+# Canonical source lives there; these are build-time copies, never hand-edited or committed.
+installer/payload/
+python-installer/src/skillfed/payload/
 
 # Local env / secrets
 .env

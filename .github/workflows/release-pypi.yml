@@ -1,0 +1,44 @@
+name: Release · PyPI (skillfed)
+
+# Builds the python-installer package and publishes it to PyPI via Trusted Publishing (OIDC) —
+# no token, no secret. Works for the FIRST release too: register a "pending publisher" on PyPI
+# (see PUBLISHING.md) before pushing the tag.
+#
+# Trigger: push a version tag (v0.1.0, v0.2.0, …) or run manually.
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  pypi:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write          # mint the OIDC token PyPI checks against the trusted publisher
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Vendor payload (single source of truth)
+        run: node scripts/vendor-payload.mjs
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build sdist + wheel
+        run: |
+          python -m pip install --upgrade build
+          python -m build python-installer
+      - name: Show what will be published
+        run: ls -l python-installer/dist
+
+      - name: Publish to PyPI (Trusted Publishing)
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: python-installer/dist

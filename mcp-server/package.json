@@ -27,6 +27,12 @@
     "skill-discovery"
   ],
   "license": "MIT",
+  "homepage": "https://github.com/skill-federation/skill-federation",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/skill-federation/skill-federation.git",
+    "directory": "mcp-server"
+  },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0"
   }

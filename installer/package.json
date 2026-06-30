@@ -1,0 +1,36 @@
+{
+  "name": "skillfed",
+  "version": "0.1.0",
+  "description": "No-clone installer for Skill Federation — drops the curl-tier finder skill + /skillfed command into ~/.claude (or ./.claude). Run via `npx skillfed`. Zero runtime deps.",
+  "type": "module",
+  "bin": {
+    "skillfed": "cli.mjs"
+  },
+  "files": [
+    "cli.mjs",
+    "payload/SKILL.md",
+    "payload/plan_nudge.json",
+    "payload/skillfed.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "prepack": "node ../scripts/vendor-payload.mjs"
+  },
+  "keywords": [
+    "skill-federation",
+    "skillfed",
+    "claude-code",
+    "agent-skills",
+    "installer",
+    "skill-discovery"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/skill-federation/skill-federation",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/skill-federation/skill-federation.git",
+    "directory": "installer"
+  }
+}

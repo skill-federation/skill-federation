@@ -117,35 +117,32 @@ skills pulled from a large, noisy public catalog.
 
 ## 📦 Install
 
-From this repo's root:
+**No clone needed — one line.** Pick whichever fits your machine:
 
 ```powershell
-# Windows (PowerShell)
-.\install.ps1
+# Windows (PowerShell) — also sidesteps the script-execution-policy block (nothing lands on disk)
+irm https://raw.githubusercontent.com/skill-federation/skill-federation/main/install.ps1 | iex
 ```
 ```bash
 # macOS / Linux
-chmod +x install.sh && ./install.sh
+curl -fsSL https://raw.githubusercontent.com/skill-federation/skill-federation/main/install.sh | bash
+```
+```bash
+# have Node ≥18 (ships with the Claude Code npm CLI)?  versioned, auto-updating:
+npx skillfed
+
+# have uv / pipx?  same, for Python shops & CI:
+uvx skillfed            # or:  pipx run skillfed
 ```
 
 > [!TIP]
 > Then **restart Claude Code** and run `/skillfed <what you're trying to do>` — or just approve
 > a plan and the finder offers itself automatically.
 
-**Or just ask Claude Code.** Don't want to touch a terminal? Paste this and let it do the setup:
-
-```text
-Set up the Skill Federation "/skillfed" finder from
-github.com/skill-federation/skill-federation — clone the repo and run its
-installer (install.ps1 on Windows, install.sh on macOS/Linux) from the repo
-root, then tell me to restart Claude Code and try /skillfed.
-```
-
-It'll ask permission to clone and run the script. Prefer something deterministic? The shell
-one-liner above is the canonical path.
-
-The installer auto-detects your machine and always installs the **curl** tier (zero runtime).
-Opt into more with flags:
+All paths install the **curl** tier (zero runtime — the finder needs only `curl`, already on
+Win10+/macOS). The curl/`irm` bootstrap is the truest fit (no Node, no Python, works on the
+standalone desktop build); `npx`/`uvx` add a versioned, auto-updating package pin. Opt into more
+with flags (`npx skillfed --with-hook`, or `curl … | bash -s -- --with-hook`):
 
 <details>
 <summary>Optional tiers (hook · npx MCP · python)</summary>
@@ -159,8 +156,25 @@ Opt into more with flags:
 
 </details>
 
-See [`install.md`](install.md) for options, scopes, and safety details (it backs up and merges
-config, never clobbers).
+<details>
+<summary>From a checkout instead</summary>
+
+```powershell
+# Windows (PowerShell)
+.\install.ps1
+```
+```bash
+# macOS / Linux
+chmod +x install.sh && ./install.sh
+```
+
+The same scripts power the one-liners above: run from a clone they copy the files locally; piped
+from the network they fetch them from raw GitHub. Either way the runtime needs only `curl`.
+
+</details>
+
+See [`install.md`](install.md) for options, scopes, flag-passing, and safety details (it backs up
+and merges config, never clobbers).
 
 ## 🛡️ Privacy & trust
 
@@ -200,10 +214,13 @@ export SKILLFED_ENDPOINT="https://your-federation.example.com"   # or set in .mc
 ## 📁 What's in this repo
 
 ```
-install.ps1 / install.sh / install.md   one-command, auto-detecting installer
-integrations/claude-code/               the Claude Code plugin (skill + /skillfed + hook)
+install.ps1 / install.sh / install.md   auto-detecting installer; works from a clone OR piped (irm|iex, curl|bash)
+installer/                              npm package `skillfed` — the `npx skillfed` no-clone path
+python-installer/                       PyPI package `skillfed` — the `uvx skillfed` / `pipx run skillfed` path
+scripts/vendor-payload.mjs              vendors the 3 payload files into both packages (single source of truth)
+integrations/claude-code/               the Claude Code plugin (skill + /skillfed + hook) — canonical payload
 integrations/*.py                       optional Python tier (advanced / CI)
-mcp-server/                             optional Node MCP tier (typed tools via npx)
+mcp-server/                             optional Node MCP tier (typed tools via npx skillfed-mcp)
 ```
 
 ## 📄 License
