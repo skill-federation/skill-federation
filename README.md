@@ -4,6 +4,8 @@
 
 ### The trusted skill layer for AI agents
 
+[![npm](https://img.shields.io/npm/v/skillfed?logo=npm&logoColor=white&color=CB3837&label=npx%20skillfed)](https://www.npmjs.com/package/skillfed)
+[![PyPI](https://img.shields.io/pypi/v/skillfed?logo=pypi&logoColor=white&color=3775A9&label=uvx%20skillfed)](https://pypi.org/project/skillfed/)
 [![License](https://img.shields.io/github/license/skill-federation/skill-federation?color=7C5CDB)](LICENSE)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-8A8377)
 ![Runtime](https://img.shields.io/badge/runtime-none%20(curl)-2E9E6B)

@@ -8,13 +8,18 @@ Two packages give Skill Federation its no-clone install paths:
 | `skillfed` | PyPI | [`python-installer/`](python-installer/) | `uvx skillfed` / `pipx run skillfed` |
 | `skillfed-mcp` | npm | [`mcp-server/`](mcp-server/) | registered by `--with-npx` as `npx -y skillfed-mcp` |
 
-> The **curl bootstrap** (`irm|iex`, `curl|bash`) needs none of this — it goes live the moment
-> the updated `install.ps1`/`install.sh` are pushed to `main`. Publishing only powers the
-> `npx`/`uvx` lines.
+> [!NOTE]
+> **Status — v0.1.0 is live.** `skillfed` (npm + PyPI) and `skillfed-mcp` (npm) are all
+> published, and the curl/`irm` bootstrap is served from `main`. The release pipeline is
+> **tokenless OIDC** for every future version, so this doc is now the **release runbook** for
+> v0.2.0 onward — the first-release bootstrap is preserved below as history.
 
-**Recommended: the GitHub Actions pipeline below** — the cloud builds and publishes, so you need
-no local Node/Python and (almost) no tokens. The manual sections after it are the fallback for a
-runtime-equipped machine.
+> The **curl bootstrap** (`irm|iex`, `curl|bash`) needs no publishing — it's live, served from
+> `install.ps1`/`install.sh` on `main`. Publishing only powers the `npx`/`uvx` lines.
+
+**The GitHub Actions pipeline below releases new versions** — the cloud builds and publishes via
+OIDC, so you need no local Node/Python and no tokens. The manual sections are a runtime-equipped
+fallback.
 
 ---
 
@@ -24,50 +29,42 @@ Two workflows publish on any `v*` tag (or manual *Run workflow*):
 [`.github/workflows/release-pypi.yml`](.github/workflows/release-pypi.yml) and
 [`release-npm.yml`](.github/workflows/release-npm.yml).
 
-**Token story (honest):**
-- **PyPI** — fully tokenless. Trusted Publishing's *pending publisher* covers even the first
-  release.
-- **npm** — npm only allows configuring OIDC Trusted Publishing *after* a package has ≥1 version
-  ([npm docs](https://docs.npmjs.com/trusted-publishers/)), so the **first** release uses a
-  granular automation token kept in **GitHub Secrets** (never in chat or on disk). After v0.1.0
-  lands you switch npm to tokenless OIDC too.
+Both registries publish **tokenless via OIDC**. (PyPI was tokenless from the start via a pending
+publisher; npm became tokenless after v0.1.0, since npm only lets you configure Trusted Publishing
+*after* a package's first version — [npm docs](https://docs.npmjs.com/trusted-publishers/).)
 
-### One-time setup
-
-1. **Push the repo + workflows to GitHub** (`origin` is already `skill-federation/skill-federation`).
-
-2. **PyPI pending publisher** (tokenless) — pypi.org → *Your account* → **Publishing** → *Add a
-   pending publisher*:
-   | Field | Value |
-   |---|---|
-   | PyPI Project Name | `skillfed` |
-   | Owner | `skill-federation` |
-   | Repository name | `skill-federation` |
-   | Workflow name | `release-pypi.yml` |
-   | Environment | *(leave blank)* |
-
-3. **npm token for the first release** — npmjs.com → *Access Tokens* → **Generate → Granular
-   Access Token**: read+write on packages, scoped to `skillfed` and `skillfed-mcp` (or all).
-   Copy it, then in the GitHub repo → **Settings → Secrets and variables → Actions → New
-   repository secret**: name `NPM_TOKEN`, value = the token. (This is the only secret, and it
-   lives only in GitHub's encrypted store.)
-
-### Release
+### Release a new version
 
 ```bash
-git tag v0.1.0
-git push origin v0.1.0          # both workflows fire; watch the Actions tab
+# 1. bump the version in all four manifests:
+#    installer/package.json · python-installer/pyproject.toml ·
+#    mcp-server/package.json · integrations/claude-code/.claude-plugin/plugin.json
+# 2. tag + push:
+git tag v0.2.0
+git push origin v0.2.0          # both workflows fire; watch the Actions tab
 ```
 
 Then smoke-test: `npx -y skillfed@latest --help` and `uvx skillfed --help`.
 
-### After the first npm release → go fully tokenless
+<details>
+<summary>How v0.1.0 was first bootstrapped (history + remaining cleanup)</summary>
 
-1. npmjs.com → each package (`skillfed`, `skillfed-mcp`) → **Settings → Trusted Publisher** →
-   add GitHub Actions (repo `skill-federation/skill-federation`, workflow `release-npm.yml`).
-2. In `release-npm.yml`: bump `node-version` so npm ≥ 11.5.1 (e.g. add a
-   `run: npm install -g npm@latest` step) and delete the two `NODE_AUTH_TOKEN` lines.
-3. Delete the `NPM_TOKEN` secret. Future tags publish with no token, provenance automatic.
+One-time setup, already done:
+1. Pushed the repo + workflows to GitHub.
+2. **PyPI pending publisher** (tokenless) — pypi.org → *Publishing* → *Add a pending publisher*:
+   project `skillfed`, owner `skill-federation`, repo `skill-federation`, workflow
+   `release-pypi.yml`, environment blank.
+3. **npm bootstrap token** — a granular token with **bypass-2FA** + **All packages** + read/write,
+   stored as the `NPM_TOKEN` GitHub secret, published v0.1.0. (npm's `EOTP` error means the token
+   is missing the bypass-2FA flag.)
+
+**Final cleanup → npm tokenless forever** (the workflow is already on the OIDC form — npm ≥ 11.5.1,
+no `NODE_AUTH_TOKEN`):
+1. npmjs.com → each package (`skillfed`, `skillfed-mcp`) → **Settings → Trusted Publisher** → add
+   GitHub Actions (repo `skill-federation/skill-federation`, workflow `release-npm.yml`).
+2. Delete the `NPM_TOKEN` secret and the bootstrap token.
+
+</details>
 
 ---
 
@@ -123,8 +120,9 @@ npm view skillfed
 npx -y skillfed@latest --help     # should print usage and exit
 ```
 
-### Also publish `skillfed-mcp` (optional but recommended)
-`--with-npx` registers `npx -y skillfed-mcp`, which only resolves once that package exists:
+### Also publish `skillfed-mcp`
+`--with-npx` registers `npx -y skillfed-mcp` (published, so npx fetches it on first run). To
+re-publish it manually:
 ```bash
 cd ../mcp-server
 npm publish --dry-run

@@ -147,7 +147,7 @@ if ($WithNpx) {
       $M['mcpServers']['skillfed-mcp'] = @{ command = 'npx'; args = @('-y','skillfed-mcp'); env = @{ SKILLFED_ENDPOINT = $Endpoint } }
       JWrite $M $mcpPath
       Write-Host "[npx] registered Node MCP server -> $mcpPath (npx -y skillfed-mcp)" -ForegroundColor Green
-      Write-Host "      note: needs the skillfed-mcp package published to npm (see installer/)." -ForegroundColor DarkGray
+      Write-Host "      note: uses the published skillfed-mcp on npm (npx fetches it on first run)." -ForegroundColor DarkGray
     }
   }
 }

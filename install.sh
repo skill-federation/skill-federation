@@ -131,7 +131,7 @@ PYEOF
       if [ "$SRV_CMD" = node ]; then
         [ -d "$SCRIPT_DIR/mcp-server/node_modules" ] || echo "      run once: npm install --prefix \"$SCRIPT_DIR/mcp-server\""
       else
-        echo "      note: needs the skillfed-mcp package published to npm (see installer/)."
+        echo "      note: uses the published skillfed-mcp on npm (npx fetches it on first run)."
       fi
     else
       echo "[npx] no python to edit .mcp.json. Add to $MCP:"
