@@ -2,14 +2,14 @@ name: Release · npm (skillfed + skillfed-mcp)
 
 # Publishes the two npm packages: `skillfed` (installer/) and `skillfed-mcp` (mcp-server/).
 #
-# FIRST release needs a token: npm only lets you configure OIDC Trusted Publishing AFTER a
-# package has ≥1 published version (https://docs.npmjs.com/trusted-publishers/). So v0.1.0
-# authenticates with a granular automation token stored as the NPM_TOKEN repo secret (never in
-# code or chat). After it lands, register a Trusted Publisher on each package, bump npm to
-# ≥11.5.1 in this workflow, and delete the NODE_AUTH_TOKEN lines + the secret — releases then
-# go fully tokenless (provenance is automatic under OIDC).
+# Tokenless via OIDC Trusted Publishing. v0.1.0 was bootstrapped with a one-shot bypass-2FA
+# token (since npm only allows configuring a Trusted Publisher AFTER a package's first version —
+# https://docs.npmjs.com/trusted-publishers/); that token has been removed. Both `skillfed` and
+# `skillfed-mcp` now have a GitHub Actions trusted publisher registered for this workflow, so no
+# secret is needed and provenance is signed automatically.
 #
-# Trigger: push a version tag (v0.1.0, …) or run manually.
+# Requires npm ≥ 11.5.1 (installed below) and id-token: write.
+# Trigger: push a version tag (v0.2.0, …) or run manually.
 
 on:
   push:
@@ -31,17 +31,15 @@ jobs:
         with:
           node-version: '20'
           registry-url: 'https://registry.npmjs.org'
+      - name: Upgrade npm (Trusted Publishing needs ≥ 11.5.1)
+        run: npm install -g npm@latest
 
       # `npm publish` in installer/ runs its prepack -> scripts/vendor-payload.mjs, so the
-      # payload is vendored into the tarball automatically.
+      # payload is vendored into the tarball automatically. OIDC handles auth + provenance.
       - name: Publish skillfed (installer/)
         working-directory: installer
-        run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --access public
 
       - name: Publish skillfed-mcp (mcp-server/)
         working-directory: mcp-server
-        run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --access public
