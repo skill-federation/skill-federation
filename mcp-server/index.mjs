@@ -16,7 +16,7 @@
  * + keywords) and, on a miss, a capability sketch ever cross the boundary. Never the plan/brief/output.
  *
  * Config (env): SKILLFED_ENDPOINT (required), SKILLFED_API_KEY (optional),
- * SKILLFED_TENANT, SKILLFED_TOP_N (3), SKILLFED_K (4).
+ * SKILLFED_TENANT, SKILLFED_TOP_N (5), SKILLFED_K (4).
  */
 
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";

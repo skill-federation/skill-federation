@@ -62,7 +62,7 @@ Add to your project `.mcp.json` (or `~/.claude.json`). The server installs nothi
 | `SKILLFED_ENDPOINT` | _(required)_ | hosted federation URL |
 | `SKILLFED_API_KEY` | _(none)_ | bearer token (qurini demo is keyless) |
 | `SKILLFED_TENANT` | `$USER`/`$USERNAME`/`local` | tenant id |
-| `SKILLFED_TOP_N` | `3` | candidates per wish |
+| `SKILLFED_TOP_N` | `5` | candidates per wish |
 | `SKILLFED_K` | `4` | paraphrase formulations concatenated per query |
 
 ## Test without Claude

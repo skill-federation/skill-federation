@@ -48,7 +48,7 @@ through your shell (Bash) tool.
 - **Endpoint**: use `$SKILLFED_ENDPOINT` if it's set, else default
   `https://qurini-skill-federation.hf.space` (the keyless demo). Point it at our own
   federation core later — the request/response shapes are unchanged.
-- **Defaults**: `top_n` = 3 candidates per wish; ~4 paraphrases per wish.
+- **Defaults**: `top_n` = 5 candidates per wish; ~4 paraphrases per wish.
 - **Windows note**: in PowerShell, `curl` is an alias for `Invoke-WebRequest` — call
   **`curl.exe`** explicitly. On macOS/Linux plain `curl` is fine.
 - **Quoting-safe pattern**: write each JSON request body to a temp file and send it with
@@ -95,7 +95,7 @@ post-use signals; that's out of scope for the finder.)
    ```bash
    # body.json  →  { "tenant":"local",
    #                 "wish":"<description + formulations + flattened sketch, space-joined>",
-   #                 "keywords":["1-5","evidence","terms"], "top_n":3 }
+   #                 "keywords":["1-5","evidence","terms"], "top_n":5 }
    curl.exe -s --max-time 20 -X POST "$SKILLFED_ENDPOINT/search" \
      -H "Content-Type: application/json" --data-binary "@body.json"
    ```

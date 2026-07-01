@@ -107,6 +107,6 @@ fallback if absent). The **runtime** path only ever needs `curl`.
 # the finder's search call, by hand (curl.exe on Windows):
 curl -s -X POST "https://qurini-skill-federation.hf.space/search" \
   -H "Content-Type: application/json" \
-  --data-binary '{"tenant":"local","wish":"extract tables from PDF documents","keywords":["pdf","table-extraction","parsing"],"top_n":3}'
+  --data-binary '{"tenant":"local","wish":"extract tables from PDF documents","keywords":["pdf","table-extraction","parsing"],"top_n":5}'
 ```
 A JSON payload with ranked `candidates` means you're wired up. Then just use `/skillfed`.

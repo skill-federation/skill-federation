@@ -41,14 +41,14 @@ Usage:
 
 Env:
   SKILLFED_ENDPOINT  hosted federation URL (unset → local core via skillfed_client)
-  SKILLFED_TOP_N     candidates returned per wish (default 3 — spec default k)
+  SKILLFED_TOP_N     candidates returned per wish (default 5)
   SKILLFED_K         paraphrase formulations concatenated into each query (default 4)
   SKILLFED_WORKERS   max concurrent wish searches (default 10)
 
 Output (stdout): JSON
   {
     "endpoint_mode": "hosted" | "local",
-    "top_n": 3,
+    "top_n": 5,
     "paraphrases_k": 4,
     "n_wishes": 4,
     "results": [
@@ -82,7 +82,7 @@ if HERE not in sys.path:
 from skillfed_client import SkillfedClient, ENDPOINT  # noqa: E402
 from local_skills import installed_skill_names, filter_candidates  # noqa: E402
 
-TOP_N = int(os.environ.get("SKILLFED_TOP_N", "3"))  # candidates returned per wish
+TOP_N = int(os.environ.get("SKILLFED_TOP_N", "5"))  # candidates returned per wish
 K = int(os.environ.get("SKILLFED_K", "4"))          # paraphrase formulations concatenated per query
 WORKERS = int(os.environ.get("SKILLFED_WORKERS", "10"))
 

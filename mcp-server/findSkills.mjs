@@ -29,7 +29,7 @@
 import { federation, ENDPOINT } from "./federation.mjs";
 import { installedSkillNames, filterCandidates } from "./localSkills.mjs";
 
-const TOP_N = parseInt(process.env.SKILLFED_TOP_N || "3", 10); // candidates per wish
+const TOP_N = parseInt(process.env.SKILLFED_TOP_N || "5", 10); // candidates per wish
 const K = parseInt(process.env.SKILLFED_K || "4", 10); // paraphrase formulations per query
 
 class InvalidWishlist extends Error {
