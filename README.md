@@ -98,7 +98,7 @@ You: /skillfed automate monthly vendor-invoice reconciliation
 We measured Skill Federation on **SkillsBench** (coding-agent tasks with deterministic verifiers),
 with the agent harnessed as **Claude Code (Opus 4.6)**. The catch that makes this a real test:
 the skill Skillfed retrieves comes from a **26,629-skill snapshot of the public catalog** (which
-holds 100k+ skills overall) **with the benchmark's own answer skills removed** — so this measures
+holds 87k+ skills overall) **with the benchmark's own answer skills removed** — so this measures
 whether *independently authored* skills transfer to the task, not whether we can re-find the
 benchmark's hand-written one.
 
