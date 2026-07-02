@@ -65,25 +65,23 @@
   <!-- wish + multiple ranked candidates with real trust metadata -->
   <text class="mono l l2" x="30" y="178" font-size="13"><tspan class="muted">wish: </tspan><tspan class="ink">pdf-data-extraction</tspan><tspan class="muted">  — 5 ranked matches:</tspan></text>
 
-  <!-- candidate 1 (selected) -->
+  <!-- candidate 1 (selected) — real top match from the live federation -->
   <g class="l l3">
     <rect x="24" y="189" width="672" height="24" rx="6" fill="#7C5CDB" fill-opacity="0.09"/>
-    <text x="36" y="206" class="mono muted" font-size="13">1</text>
-    <text x="56" y="206" class="mono ink" font-size="13">azure-ai-document-intelligence</text>
-    <text x="352" y="206" class="mono" font-size="13"><tspan class="green">permissive</tspan><tspan class="muted"> · verified · </tspan><tspan class="amber">2607★</tspan></text>
-    <text x="590" y="206" class="mono violet" font-size="13">✓ picked</text>
+    <text x="36" y="206" class="mono muted" font-size="12">1</text>
+    <text x="56" y="206" class="mono ink" font-size="12">azure-ai-document-intelligence-dotnet</text>
+    <text x="360" y="206" class="mono" font-size="12"><tspan class="green">permissive</tspan><tspan class="muted"> · verified · </tspan><tspan class="amber">2607★</tspan></text>
+    <text x="598" y="206" class="mono violet" font-size="12">✓ picked</text>
   </g>
-  <!-- candidate 2 -->
+  <!-- candidate 2 — second strong permissive match -->
   <g class="l l4">
-    <text x="36" y="233" class="mono muted" font-size="13">2</text>
-    <text x="56" y="233" class="mono ink" font-size="13">azure-ai-formrecognizer-java</text>
-    <text x="352" y="233" class="mono" font-size="13"><tspan class="soft">review</tspan><tspan class="muted"> · verified · 6★</tspan></text>
+    <text x="36" y="233" class="mono muted" font-size="12">2</text>
+    <text x="56" y="233" class="mono ink" font-size="12">azure-ai-document-intelligence-ts</text>
+    <text x="360" y="233" class="mono" font-size="12"><tspan class="green">permissive</tspan><tspan class="muted"> · verified · </tspan><tspan class="amber">2607★</tspan></text>
   </g>
-  <!-- candidate 3 -->
+  <!-- candidates 3-5 — the honest tail: review-licensed, low-star -->
   <g class="l l5">
-    <text x="36" y="260" class="mono muted" font-size="13">3</text>
-    <text x="56" y="260" class="mono ink" font-size="13">azure-ai-formrecognizer-dotnet</text>
-    <text x="352" y="260" class="mono" font-size="13"><tspan class="soft">review</tspan><tspan class="muted"> · verified</tspan></text>
+    <text x="36" y="260" class="mono muted" font-size="12">+ 3 more · review-licensed · ≤ 6★</text>
   </g>
 
   <!-- the other two wishes, condensed -->
