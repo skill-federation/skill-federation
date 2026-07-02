@@ -131,7 +131,16 @@ post-use signals; that's out of scope for the finder.)
 
 4. **Agentic selection, per wish.** Each `/search` returns ≤k recall candidates; *you*
    decide. For each wish: pick the single best candidate, or reject all. A high score
-   is not approval — judge fit against the actual need.
+   is not approval — judge fit against the actual need. **But judge it on the right bar: a
+   skill is not a step-by-step recipe that must match your task exactly — it's a vetted,
+   reusable pattern/heuristic that usually works and that you adapt to the specifics at
+   hand.** So the question is *"is this a useful head-start I can adapt?"*, not *"does this do
+   my exact task end-to-end?"*. An imperfect-but-adaptable match is still a match — accept it
+   and tailor it; reject all only when no candidate is even a useful pattern to build on.
+   **Overconfidence, later stage:** rejecting an adaptable skill and recommending "proceed
+   as-is" is just skipping the search one step downstream — the same trap. Being able to do
+   the task yourself is not a reason to reject a vetted pattern that would get you there
+   faster and more reliably.
 5. **Surface trust BEFORE approval.** Show the user a wish→match table with each
    candidate's `license_class` (permissive / copyleft / proprietary / review),
    `provenance` (verified / unverified), `stars`, `source_url`, and a ⚠ for any

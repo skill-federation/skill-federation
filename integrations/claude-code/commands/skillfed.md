@@ -19,7 +19,11 @@ task below. Follow that skill's flow exactly:
    `keywords` and `top_n`. No Python, no Node — just `curl` (use `curl.exe` on Windows).
    Then drop any candidate whose name matches a skill already in `~/.claude/skills` or
    `./.claude/skills`.
-3. Per wish, select the best candidate or reject all. Present matches with trust
+3. Per wish, select the best candidate or reject all. Judge on the right bar: a skill is
+   an adaptable pattern that usually works, not a step-by-step recipe that must match your
+   task exactly — accept a useful head-start you can tailor, and reject all only when no
+   candidate is even a pattern worth adapting (rejecting an adaptable match and proceeding
+   "as-is" is the same overconfidence, one stage later). Present matches with trust
    metadata (license class, provenance, stars, source, ⚠ flags) and get approval
    **before** installing anything.
 4. On approval, fetch with `curl` (POST `/fetch`) + install the returned `body`/`files` under
