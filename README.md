@@ -42,7 +42,7 @@ your agent writes an abstract **wish-list** — "if every skill existed, which w
 files, and your outputs never leave your machine. Only the abstract wishes do.
 
 > [!IMPORTANT]
-> **Only the abstract wish crosses the boundary** — a one-line capability description, a few
+> **Only the abstract wish crosses the boundary** — a one-line capability description, ~4
 > vocabulary-varied paraphrases, 1–5 keywords, and a capability-level *sketch* of the ideal
 > skill. Every field is "what skill should exist," never your task. Your plan, brief, file
 > contents, and reasoning trace stay local — **always**.
@@ -51,10 +51,11 @@ files, and your outputs never leave your machine. Only the abstract wishes do.
 It names the *capability domain*, never your task, files, or client:
 
 ```text
-extract tables and line items from PDF invoices · pull structured data out of PDF invoices ·
-parse tabular data from scanned invoices · read invoice fields from PDF documents ·
-invoice line item vendor subtotal tax OCR bounding box layout · table detection field
-extraction layout parsing · structured table JSON records CSV rows
+description: extract tables and line items from PDF invoices
+paraphrases: pull structured data out of PDF invoices · extract line items and totals from a
+  PDF · parse tabular data from scanned invoices · read invoice fields from PDF documents
+sketch: invoice line item vendor subtotal tax OCR bounding box layout · table detection field
+  extraction layout parsing · structured table JSON records CSV rows
 keywords: pdf, invoice, tables, extraction, ocr
 ```
 
