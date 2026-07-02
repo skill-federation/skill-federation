@@ -28,9 +28,21 @@ abstract wish-list, and the federation matches those wishes against its catalog.
   extraction, market sizing, PR review, SQL reporting, resume tailoring, …).
 - The user says "find a skill for…", "is there a skill that…", or runs `/skillfed`.
 
-> **Don't skip silently.** If you conclude a plan needs no skill search (e.g. bespoke work on your
-> own codebase), say so **explicitly** — name the capabilities you considered and why none needs a
-> federated skill — and **confirm with the user** before proceeding without a search.
+> **Search is leverage, not a crutch — and the decision test is not your own ability.** A strong
+> engineer checks for a vetted tool before hand-rolling one; running the finder is that check, not
+> an admission you can't do the work. Ask *"does a vetted specialist already do this well?"* — never
+> *"can I do this myself?"* (you usually can, and that's beside the point).
+>
+> **Overconfidence trap:** having the whole mechanism mapped is *not* evidence that no skill helps —
+> that's precisely when one usually exists. Capability to build ≠ correctness of building. And it
+> pays off measurably: on SkillsBench a matched skill lifts task success ~30% (17.5%→22.8%) and
+> saves you from reinventing a guideline that already exists. The search costs <300 ms/wish and
+> sends only abstract wishes, so **run it by default**.
+>
+> **Skip only in the narrow case** — the task is genuinely singular (bound to this repo's internals
+> with no reusable analog) or trivially small. Even then, don't skip silently: name the reusable
+> capabilities you looked for and why none could exist as a shareable skill, and **confirm with the
+> user** first.
 
 ## Backend — MCP tools if present, else `curl`
 

@@ -36,7 +36,14 @@ NUDGE = (
     "user's approval BEFORE installing anything.\n"
     "4. Route outcomes without conflating them: an empty-retrieval wish → a demand "
     "sketch; a wish with candidates you reject → a `selected_id:null` selection label.\n"
-    "If nothing relevant is missing, say so briefly and proceed."
+    "Running the finder is the capable move, not a fallback — the test is \"does a vetted "
+    "skill already do this well?\", never \"can I build it myself?\" (you usually can — beside "
+    "the point). Being able to map the whole mechanism is exactly when a specialist most "
+    "often exists; on SkillsBench a matched skill lifts task success ~30% (17.5%→22.8%) and "
+    "saves reinventing a guideline that already exists. Run it by default. Skip only if the "
+    "task is genuinely singular (bound to this repo's internals, no reusable analog) or "
+    "trivially small — and then name the reusable capabilities you looked for and why none "
+    "could exist as a shareable skill, and confirm with the user first."
 )
 
 
