@@ -1,0 +1,51 @@
+name: Metrics · Installs badge
+
+# Recomputes the honest combined install total (npm + PyPI without mirrors) and publishes it as a
+# shields.io endpoint JSON on the orphan `badges` branch. The README renders it via:
+#   https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/skill-federation/skill-federation/badges/installs.json
+#
+# Kept on a dedicated branch so main history stays clean. No third-party actions, no secrets —
+# the built-in GITHUB_TOKEN can push to the same repo.
+#
+# Trigger: daily cron, or run manually.
+
+on:
+  schedule:
+    - cron: '17 6 * * *'     # 06:17 UTC daily
+  workflow_dispatch:
+
+permissions:
+  contents: write            # push the regenerated badge JSON to the `badges` branch
+
+concurrency:
+  group: installs-badge
+  cancel-in-progress: true
+
+jobs:
+  badge:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compute combined install total
+        run: python3 scripts/installs_badge.py --verbose > "$RUNNER_TEMP/installs.json"
+
+      - name: Publish to badges branch
+        run: |
+          set -euo pipefail
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git ls-remote --exit-code --heads origin badges >/dev/null 2>&1; then
+            git fetch origin badges
+            git checkout -B badges origin/badges
+          else
+            git checkout --orphan badges
+            git rm -rf . >/dev/null 2>&1 || true
+          fi
+          cp "$RUNNER_TEMP/installs.json" installs.json
+          git add installs.json
+          if git diff --cached --quiet; then
+            echo "no change in install total"; exit 0
+          fi
+          git commit -m "chore(badges): update install totals"
+          git push origin badges
