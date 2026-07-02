@@ -4,15 +4,20 @@
 
 ### Free, private skill search for AI agents
 
+<!-- Row 1 — Traction & proof -->
+[![Installs](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/skill-federation/skill-federation/badges/installs.json&label=installs&logo=serverless&logoColor=white)](https://pypistats.org/packages/skillfed)
+[![Stars](https://img.shields.io/github/stars/skill-federation/skill-federation?style=flat&color=E8C24A&logo=github&logoColor=white)](https://github.com/skill-federation/skill-federation/stargazers)
+[![SkillsBench](https://img.shields.io/badge/SkillsBench-%2B30%25%20vs%20bare%20agent-E07A55)](#-benchmark)
+
+<!-- Row 2 — Install & run -->
 [![npm](https://img.shields.io/npm/v/skillfed?logo=npm&logoColor=white&color=CB3837&label=npx%20skillfed)](https://www.npmjs.com/package/skillfed)
 [![PyPI](https://img.shields.io/pypi/v/skillfed?logo=pypi&logoColor=white&color=3775A9&label=uvx%20skillfed)](https://pypi.org/project/skillfed/)
-[![Installs](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/skill-federation/skill-federation/badges/installs.json&label=installs&logo=serverless&logoColor=white)](https://pypistats.org/packages/skillfed)
-[![License](https://img.shields.io/github/license/skill-federation/skill-federation?color=7C5CDB)](LICENSE)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-8A8377)
 ![Runtime](https://img.shields.io/badge/runtime-none%20(curl)-2E9E6B)
+
+<!-- Row 3 — Trust & terms -->
+[![License](https://img.shields.io/github/license/skill-federation/skill-federation?color=7C5CDB)](LICENSE)
 ![Data sent](https://img.shields.io/badge/data%20sent-abstract%20wishes%20only-7C5CDB)
-![SkillsBench](https://img.shields.io/badge/SkillsBench-%2B30%25%20vs%20bare%20agent-E07A55)
-[![Stars](https://img.shields.io/github/stars/skill-federation/skill-federation?style=flat&color=E8C24A&logo=github&logoColor=white)](https://github.com/skill-federation/skill-federation/stargazers)
 
 <a href="https://skill-federation.github.io/"><img src="assets/demo.svg" alt="Running /skillfed for monthly vendor-invoice reconciliation returns three vetted skill matches to install" width="720"></a>
 
