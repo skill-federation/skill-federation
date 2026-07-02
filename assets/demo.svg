@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 400" width="720" height="400"
-     role="img" aria-label="Terminal demo: /skillfed sends abstract wishes for a vendor-invoice task, and the federation returns multiple ranked skill candidates each with license, provenance and star metadata; the agent picks the best and prompts to install into .claude/skills.">
+     role="img" aria-label="Terminal demo: /skillfed plans a launch for an open-source dev tool by sending four abstract wishes; the federation returns ranked matches and the agent selects multi-platform-launch, github-presence, community-building and product-analytics, each shown with license, provenance and star metadata, to install into .claude/skills.">
   <title>Skill Federation — /skillfed demo</title>
-  <desc>An animated terminal runs /skillfed automate monthly vendor-invoice reconciliation. It shows that only an abstract capability wish crosses the machine boundary, then the federation returns five ranked candidates for the pdf-data-extraction wish — the top one azure-ai-document-intelligence is permissive, verified, 2607 stars and gets selected, while lower matches are review-licensed with few or no stars. A prompt offers to install the selected skills into .claude/skills with license and source attribution.</desc>
+  <desc>An animated terminal runs /skillfed plan a launch for my open-source dev tool. Only four abstract capability wishes cross the boundary. The federation returns ranked matches and the agent selects one skill per wish — multi-platform-launch, github-presence and community-building (review-licensed, verified) and product-analytics (permissive, verified, 221 stars) — each picked from several ranked candidates. A prompt offers to install the four into .claude/skills with license and source attribution.</desc>
 
   <style>
     .mono { font-family: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace; }
@@ -36,8 +36,8 @@
     @keyframes r3 { 0%,37%{opacity:0} 41%,96%{opacity:1} 100%{opacity:0} }
     @keyframes r4 { 0%,43%{opacity:0} 47%,96%{opacity:1} 100%{opacity:0} }
     @keyframes r5 { 0%,49%{opacity:0} 53%,96%{opacity:1} 100%{opacity:0} }
-    @keyframes r6 { 0%,55%{opacity:0} 59%,96%{opacity:1} 100%{opacity:0} }
-    @keyframes r7 { 0%,62%{opacity:0} 66%,96%{opacity:1} 100%{opacity:0} }
+    @keyframes r6 { 0%,56%{opacity:0} 60%,96%{opacity:1} 100%{opacity:0} }
+    @keyframes r7 { 0%,63%{opacity:0} 67%,96%{opacity:1} 100%{opacity:0} }
   </style>
 
   <!-- card -->
@@ -52,47 +52,44 @@
 
   <!-- command line -->
   <text x="30" y="92" class="mono muted" font-size="15">You:</text>
-  <text x="78" y="92" class="mono ink" font-size="15">/skillfed automate monthly vendor-invoice reconciliation</text>
-  <rect class="cover" x="76" y="78" width="540" height="20"/>
-  <rect class="caret" x="618" y="79" width="9" height="17" fill="#7C5CDB"/>
+  <text x="78" y="92" class="mono ink" font-size="15">/skillfed plan a launch for my open-source dev tool</text>
+  <rect class="cover" x="76" y="78" width="470" height="20"/>
+  <rect class="caret" x="548" y="79" width="9" height="17" fill="#7C5CDB"/>
 
-  <!-- boundary beat: only the abstract wish crosses -->
-  <g class="l l1">
-    <text x="30" y="124" class="mono muted" font-size="12">→ only the abstract wish crosses the boundary — capability vocab, not your task:</text>
-    <text x="44" y="144" class="mono violet" font-size="12" xml:space="preserve">"pdf-data-extraction · line items · OCR · table detection · invoice · vendor · tax"</text>
+  <!-- boundary beat -->
+  <text class="mono l l1 muted" x="30" y="124" font-size="12">→ 4 abstract wishes cross the boundary (paraphrases + capability sketch) — never your plan or files</text>
+
+  <!-- wish → selected skill, one per wish (variety; each picked from several ranked matches) -->
+  <g class="l l2">
+    <text x="30" y="164" class="mono muted" font-size="13">wish: launch-strategy</text>
+    <text x="248" y="164" class="mono" font-size="13"><tspan class="violet">→ </tspan><tspan class="ink">multi-platform-launch</tspan></text>
+    <text x="470" y="164" class="mono" font-size="13"><tspan class="soft">review</tspan><tspan class="muted"> · verified</tspan></text>
   </g>
-
-  <!-- wish + multiple ranked candidates with real trust metadata -->
-  <text class="mono l l2" x="30" y="178" font-size="13"><tspan class="muted">wish: </tspan><tspan class="ink">pdf-data-extraction</tspan><tspan class="muted">  — 5 ranked matches:</tspan></text>
-
-  <!-- candidate 1 (selected) — real top match from the live federation -->
   <g class="l l3">
-    <rect x="24" y="189" width="672" height="24" rx="6" fill="#7C5CDB" fill-opacity="0.09"/>
-    <text x="36" y="206" class="mono muted" font-size="12">1</text>
-    <text x="56" y="206" class="mono ink" font-size="12">azure-ai-document-intelligence-dotnet</text>
-    <text x="360" y="206" class="mono" font-size="12"><tspan class="green">permissive</tspan><tspan class="muted"> · verified · </tspan><tspan class="amber">2607★</tspan></text>
-    <text x="598" y="206" class="mono violet" font-size="12">✓ picked</text>
+    <text x="30" y="192" class="mono muted" font-size="13">wish: repo-discoverability</text>
+    <text x="248" y="192" class="mono" font-size="13"><tspan class="violet">→ </tspan><tspan class="ink">github-presence</tspan></text>
+    <text x="470" y="192" class="mono" font-size="13"><tspan class="soft">review</tspan><tspan class="muted"> · verified</tspan></text>
   </g>
-  <!-- candidate 2 — second strong permissive match -->
   <g class="l l4">
-    <text x="36" y="233" class="mono muted" font-size="12">2</text>
-    <text x="56" y="233" class="mono ink" font-size="12">azure-ai-document-intelligence-ts</text>
-    <text x="360" y="233" class="mono" font-size="12"><tspan class="green">permissive</tspan><tspan class="muted"> · verified · </tspan><tspan class="amber">2607★</tspan></text>
+    <text x="30" y="220" class="mono muted" font-size="13">wish: community-building</text>
+    <text x="248" y="220" class="mono" font-size="13"><tspan class="violet">→ </tspan><tspan class="ink">community-building</tspan></text>
+    <text x="470" y="220" class="mono" font-size="13"><tspan class="soft">review</tspan><tspan class="muted"> · verified</tspan></text>
   </g>
-  <!-- candidates 3-5 — the honest tail: review-licensed, low-star -->
   <g class="l l5">
-    <text x="36" y="260" class="mono muted" font-size="12">+ 3 more · review-licensed · ≤ 6★</text>
+    <text x="30" y="248" class="mono muted" font-size="13">wish: growth-analytics</text>
+    <text x="248" y="248" class="mono" font-size="13"><tspan class="violet">→ </tspan><tspan class="ink">product-analytics</tspan></text>
+    <text x="470" y="248" class="mono" font-size="13"><tspan class="green">permissive</tspan><tspan class="muted"> · verified · </tspan><tspan class="amber">221★</tspan></text>
   </g>
 
-  <!-- the other two wishes, condensed -->
-  <text class="mono l l6" x="30" y="288" font-size="13"><tspan class="muted">+ data-cleaning </tspan><tspan class="ink">→ data-cleanup</tspan><tspan class="muted">,  chat-notification </tspan><tspan class="ink">→ slack-notifier</tspan></text>
+  <!-- honesty note: each pick came from a ranked list -->
+  <text class="mono l l6 muted" x="30" y="278" font-size="12">each picked from 5 ranked candidates — license · provenance · stars shown for every one</text>
 
   <!-- install prompt -->
   <g class="l l7">
-    <text x="30" y="328" class="mono" font-size="13"><tspan class="violet">✦ </tspan><tspan class="soft">Install the selected? → </tspan><tspan class="ink">.claude/skills/</tspan><tspan class="soft"> with license + source.</tspan></text>
-    <rect x="30" y="344" width="96" height="30" rx="15" fill="#7C5CDB"/>
-    <text x="78" y="364" text-anchor="middle" class="mono" font-size="13" fill="#FFFFFF">Install</text>
-    <rect x="136" y="344" width="112" height="30" rx="15" fill="none" stroke="#1E1B16" stroke-opacity="0.25"/>
-    <text x="192" y="364" text-anchor="middle" class="mono soft" font-size="13">Review each</text>
+    <text x="30" y="322" class="mono" font-size="13"><tspan class="violet">✦ </tspan><tspan class="soft">Install the 4 selected? → </tspan><tspan class="ink">.claude/skills/</tspan><tspan class="soft"> with license + source.</tspan></text>
+    <rect x="30" y="338" width="96" height="30" rx="15" fill="#7C5CDB"/>
+    <text x="78" y="358" text-anchor="middle" class="mono" font-size="13" fill="#FFFFFF">Install</text>
+    <rect x="136" y="338" width="112" height="30" rx="15" fill="none" stroke="#1E1B16" stroke-opacity="0.25"/>
+    <text x="192" y="358" text-anchor="middle" class="mono soft" font-size="13">Review each</text>
   </g>
 </svg>

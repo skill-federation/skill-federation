@@ -20,7 +20,7 @@
 [![License](https://img.shields.io/github/license/skill-federation/skill-federation?color=7C5CDB&style=flat-square)](LICENSE)
 ![Data sent](https://img.shields.io/badge/data%20sent-abstract%20wishes%20only-7C5CDB?style=flat-square)
 
-<a href="https://skill-federation.github.io/"><img src="assets/demo.svg" alt="Running /skillfed for monthly vendor-invoice reconciliation returns three vetted skill matches to install" width="720"></a>
+<a href="https://skill-federation.github.io/"><img src="assets/demo.svg" alt="Running /skillfed to plan a launch for an open-source dev tool returns four vetted skill matches — multi-platform-launch, github-presence, community-building, product-analytics — to install" width="720"></a>
 
 **Your agent asks. Skill Federation answers. You approve.**
 
@@ -47,38 +47,38 @@ files, and your outputs never leave your machine. Only the abstract wishes do.
 > skill. Every field is "what skill should exist," never your task. Your plan, brief, file
 > contents, and reasoning trace stay local — **always**.
 
-**Here's the entire payload for one wish** — the literal string sent for `pdf-data-extraction`.
-It names the *capability domain*, never your task, files, or client:
+**Here's the entire payload for one wish** — the literal string sent for `launch-strategy`.
+It names the *capability domain*, never your task, plans, or product:
 
 ```text
-description: extract tables and line items from PDF invoices
-paraphrases: pull structured data out of PDF invoices · extract line items and totals from a
-  PDF · parse tabular data from scanned invoices · read invoice fields from PDF documents
-sketch: invoice line item vendor subtotal tax OCR bounding box layout · table detection field
-  extraction layout parsing · structured table JSON records CSV rows
-keywords: pdf, invoice, tables, extraction, ocr
+description: plan a multi-channel launch for an open-source developer tool
+paraphrases: orchestrate a launch across hacker news reddit and product hunt · plan a
+             go-to-market launch for a dev tool · coordinate a multi-platform release
+             announcement · design a launch-day plan for an open-source project
+sketch:      launch product hunt hacker news waitlist go-to-market campaign ·
+             channel planning timing asset prep announcement
+keywords:    launch, gtm, product-hunt, strategy, announcement
 ```
 
-That's it — a description, four paraphrases, a capability sketch, and keywords. "Reconcile Acme's
-Q3 invoices," the files, and the reasoning never appear.
+That's it — a description, four paraphrases, a capability sketch, and keywords. Your product's
+name, your unreleased roadmap, and your actual launch plan never appear.
 
 <details>
 <summary>Prefer plain text? Here's the same run</summary>
 
 ```
-You: /skillfed automate monthly vendor-invoice reconciliation
+You: /skillfed plan a launch for my open-source dev tool
 
-  -> agent writes 3 abstract wishes (paraphrases + a capability sketch).
+  -> agent writes 4 abstract wishes (paraphrases + a capability sketch).
      Only these leave your machine -- never your plan, files, or data.
 
-  wish: pdf-data-extraction    5 ranked matches from the vetted catalog:
-       azure-ai-document-intelligence   permissive - verified - 2607*   <- selected
-       azure-ai-formrecognizer-java     review - verified - 6*
-       ...3 more
-  wish: data-cleaning          data-cleanup     review - verified       <- selected
-  wish: chat-notification      slack-notifier   review - verified       <- selected
+  wish: launch-strategy       -> multi-platform-launch  review - verified             <- selected
+  wish: repo-discoverability  -> github-presence        review - verified             <- selected
+  wish: community-building    -> community-building     review - verified             <- selected
+  wish: growth-analytics      -> product-analytics      permissive - verified - 221*  <- selected
+       (each picked from 5 ranked candidates in the vetted catalog)
 
-  Install the 3 selected? They go in .claude/skills/ with license + source attribution.
+  Install the 4 selected? They go in .claude/skills/ with license + source attribution.
 ```
 
 </details>

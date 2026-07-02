@@ -29,25 +29,27 @@ used — they need WSL/Go/ffmpeg this machine doesn't have, and VHS would be a s
 
 ## 2. The capture — storyboard (the *honest* flow)
 
-Use the **same scenario as `demo.svg`** for brand coherence:
+Use the **same scenario as `demo.svg`** — and it's real dogfooding: we used skillfed to plan
+skillfed's own launch.
 
 ```
 claude
-/skillfed automate monthly vendor-invoice reconciliation
+/skillfed plan a launch for my open-source dev tool
 ```
 
-The recording must show what actually happens — not the simplified one-match-per-wish view.
+The recording must show what actually happens — not a simplified one-match-per-wish view.
 Capture these five beats:
 
-1. **Command entered** — `/skillfed automate monthly vendor-invoice reconciliation`.
-2. **Abstract wishes go out** — the agent writes 3 wishes, each a description + ~4 paraphrases +
+1. **Command entered** — `/skillfed plan a launch for my open-source dev tool`.
+2. **Abstract wishes go out** — the agent writes ~4 wishes, each a description + ~4 paraphrases +
    a capability sketch. Show (even briefly) that *only these* cross the boundary — capability
    vocabulary, never the task/files. This is the privacy beat.
-3. **Multiple ranked candidates come back** — per wish, several results, ranked by score, each
-   with real trust metadata: license class (`permissive`/`review`), provenance, stars, source.
-   The PDF wish returns ~5 (top: `azure-ai-document-intelligence`, permissive · verified · 2607★).
-4. **The agent selects** the best per wish (or rejects all) — show the chosen one highlighted.
-5. **Install approval** — "Install the selected? → .claude/skills/ with license + source."
+3. **Multiple ranked candidates come back** — per wish, several results (5 each), ranked by score,
+   each with real trust metadata: license class (`permissive`/`review`), provenance, stars, source.
+   e.g. `growth-analytics` → `product-analytics` (permissive · verified · 221★).
+4. **The agent selects** the best per wish on trust (or rejects all) — show the chosen ones:
+   multi-platform-launch, github-presence, community-building, product-analytics.
+5. **Install approval** — "Install the 4 selected? → .claude/skills/ with license + source."
 
 Stop once the approval/confirmation is on screen. Do **not** hide the messiness: real matches
 include `review`-license and low/zero-star skills alongside the strong ones — that honesty is the
