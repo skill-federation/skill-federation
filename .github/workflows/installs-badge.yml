@@ -1,11 +1,15 @@
-name: Metrics · Installs badge
+name: Metrics · Badges
 
-# Recomputes the honest combined install total (npm + PyPI without mirrors) and publishes it as a
-# shields.io endpoint JSON on the orphan `badges` branch. The README renders it via:
-#   https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/skill-federation/skill-federation/badges/installs.json
+# Recomputes the honest install total (npm + PyPI without mirrors) and the cumulative clone total,
+# and publishes both as shields.io endpoint JSON on the orphan `badges` branch. The README renders
+# them via https://img.shields.io/endpoint?url=.../badges/<installs|clones>.json
 #
-# Kept on a dedicated branch so main history stays clean. No third-party actions, no secrets —
-# the built-in GITHUB_TOKEN can push to the same repo.
+# Clones accumulate in clones-ledger.json (date -> count) so the total survives GitHub's 14-day
+# traffic window. Kept on a dedicated branch so main history stays clean.
+#
+# Token note: the clone traffic API often 403s for the built-in GITHUB_TOKEN. Add a repo-scope PAT
+# as the `TRAFFIC_TOKEN` secret to guarantee clone updates; without it, the clone badge holds its
+# last value (installs still update fine).
 #
 # Trigger: daily cron, or run manually.
 
@@ -15,20 +19,33 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write            # push the regenerated badge JSON to the `badges` branch
+  contents: write            # push regenerated badge JSON to the `badges` branch
 
 concurrency:
-  group: installs-badge
+  group: metrics-badges
   cancel-in-progress: true
 
 jobs:
-  badge:
+  badges:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Compute combined install total
-        run: python3 scripts/installs_badge.py --verbose > "$RUNNER_TEMP/installs.json"
+      - name: Load existing clone ledger from badges branch
+        run: |
+          git fetch origin badges || true
+          git show origin/badges:clones-ledger.json > "$RUNNER_TEMP/clones-ledger.json" 2>/dev/null \
+            || echo '{}' > "$RUNNER_TEMP/clones-ledger.json"
+
+      - name: Compute install + clone totals
+        env:
+          GH_TRAFFIC_TOKEN: ${{ secrets.TRAFFIC_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 scripts/installs_badge.py --verbose > "$RUNNER_TEMP/installs.json"
+          # clones: on hard failure with no ledger, leave the previously published badge in place
+          python3 scripts/clones_badge.py --ledger "$RUNNER_TEMP/clones-ledger.json" \
+            > "$RUNNER_TEMP/clones.json" || rm -f "$RUNNER_TEMP/clones.json"
 
       - name: Publish to badges branch
         run: |
@@ -43,9 +60,11 @@ jobs:
             git rm -rf . >/dev/null 2>&1 || true
           fi
           cp "$RUNNER_TEMP/installs.json" installs.json
-          git add installs.json
+          cp "$RUNNER_TEMP/clones-ledger.json" clones-ledger.json
+          [ -f "$RUNNER_TEMP/clones.json" ] && cp "$RUNNER_TEMP/clones.json" clones.json || true
+          git add installs.json clones.json clones-ledger.json
           if git diff --cached --quiet; then
-            echo "no change in install total"; exit 0
+            echo "no change in totals"; exit 0
           fi
-          git commit -m "chore(badges): update install totals"
+          git commit -m "chore(badges): update install + clone totals"
           git push origin badges
