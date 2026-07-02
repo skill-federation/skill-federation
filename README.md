@@ -47,18 +47,37 @@ files, and your outputs never leave your machine. Only the abstract wishes do.
 > skill. Every field is "what skill should exist," never your task. Your plan, brief, file
 > contents, and reasoning trace stay local — **always**.
 
+**Here's the entire payload for one wish** — the literal string sent for `pdf-data-extraction`.
+It names the *capability domain*, never your task, files, or client:
+
+```text
+extract tables and line items from PDF invoices · pull structured data out of PDF invoices ·
+parse tabular data from scanned invoices · read invoice fields from PDF documents ·
+invoice line item vendor subtotal tax OCR bounding box layout · table detection field
+extraction layout parsing · structured table JSON records CSV rows
+keywords: pdf, invoice, tables, extraction, ocr
+```
+
+That's it — a description, four paraphrases, a capability sketch, and keywords. "Reconcile Acme's
+Q3 invoices," the files, and the reasoning never appear.
+
 <details>
 <summary>Prefer plain text? Here's the same run</summary>
 
 ```
 You: /skillfed automate monthly vendor-invoice reconciliation
 
-  wish: pdf-data-extraction   -> pdf-processing        [MIT - verified]
-  wish: data-cleaning         -> data-cleaning         [MIT - verified]
-  wish: chat-notification     -> slack                 [MIT - verified, 235*]
-  ...
+  -> agent writes 3 abstract wishes (paraphrases + a capability sketch).
+     Only these leave your machine -- never your plan, files, or data.
 
-  Install these 3? They'll go in .claude/skills/ with license + source attribution.
+  wish: pdf-data-extraction    5 ranked matches from the vetted catalog:
+       azure-ai-document-intelligence   permissive - verified - 2607*   <- selected
+       azure-ai-formrecognizer-java     review - verified - 6*
+       ...3 more
+  wish: data-cleaning          data-cleanup     review - verified       <- selected
+  wish: chat-notification      slack-notifier   review - verified       <- selected
+
+  Install the 3 selected? They go in .claude/skills/ with license + source attribution.
 ```
 
 </details>
