@@ -61,8 +61,11 @@ You: /skillfed automate monthly vendor-invoice reconciliation
 - **Privacy floor, by design.** Only the abstract wish crosses the boundary — "what skill should
   exist," never your task. Your plan, brief, file contents, and reasoning trace stay local,
   always. (Full field-by-field breakdown under **Privacy & trust** below.)
-- **Trust before install.** Every candidate shows its license class, provenance, stars, source,
-  and any security flags. *You* approve each install. Nothing is pulled silently.
+- **Trust before install.** Candidates come from a **pre-scanned internal registry**
+  ([Cisco Skill Scanner](https://github.com/cisco-ai-defense/skill-scanner) +
+  [NVIDIA SkillSpector](https://github.com/NVIDIA/SkillSpector)), not the wild repo — every one
+  shows its license class, provenance, stars, and source. *You* approve each install; nothing is
+  pulled silently. (See [Security](#-security).)
 - **Native, zero-install.** The default tier needs nothing but `curl` — already on Windows 10+
   and macOS. No Python, no Node, no package manager. (Optional tiers add typed MCP tools if you
   have Node.)
@@ -78,10 +81,10 @@ You: /skillfed automate monthly vendor-invoice reconciliation
    with vocabulary-varied paraphrases and a structured capability sketch for high recall. No task
    specifics.
 3. **Match.** The federation runs a fast lexical search per wish (description + paraphrases +
-   flattened sketch) and returns the top candidates.
+   flattened sketch) against the **vetted, pre-scanned catalog** and returns the top candidates.
 4. **Review.** The agent picks the best fit (or rejects all) and shows you a trust table.
-5. **Install.** On your approval, the chosen skills are fetched into `.claude/skills/` with
-   full license + source attribution.
+5. **Install.** On your approval, the chosen skills are fetched from the **internal scanned copy**
+   (not the origin repo) into `.claude/skills/` with full license + source attribution.
 6. **Use.** Your agent uses the skill immediately — no reinventing it.
 
 ## 📊 Benchmark
@@ -179,6 +182,35 @@ curl -fsSL https://raw.githubusercontent.com/skill-federation/skill-federation/m
   edits are personalization, never silently overwritten.
 
 </details>
+
+## 🔒 Security
+
+Skill Federation treats every third-party skill as untrusted input. **Skills are served from our
+internal, pre-scanned registry — never pulled live from the wild repo.** At ingestion we copy each
+candidate, dedupe it, and scan it; only passing skills are promoted and served. The `source` link
+you see is provenance, not where the skill is fetched from.
+
+Every candidate is best-effort scanned with two independent tools:
+
+- **[Cisco AI Defense Skill Scanner](https://github.com/cisco-ai-defense/skill-scanner)** —
+  YARA/pattern, bytecode, command-taint, behavioral dataflow, LLM-as-judge, and VirusTotal checks
+  for prompt injection, data exfiltration, and malicious code.
+- **[NVIDIA SkillSpector](https://github.com/NVIDIA/SkillSpector)** — vulnerability-pattern + LLM
+  analysis with live OSV.dev CVE lookups and a 0–100 risk score.
+
+High/critical findings are **rejected or routed to manual review before promotion** — the wild
+catalog never reaches you unfiltered.
+
+**Why this matters.** NVIDIA's study behind SkillSpector scanned **42,447 public skills** and found
+**26.1% carried at least one vulnerability** and **5.2% showed likely malicious intent** — and an
+installed skill runs with your agent's full permissions. Serving straight from public repos would
+hand roughly one-in-four vulnerable and one-in-twenty malicious skills to your agent; the ingest
+gate is what keeps them out.
+
+> [!NOTE]
+> Scanning is **best-effort**, not a guarantee. As Cisco's scanner puts it, *"no findings ≠ no
+> risk"* — a clean scan is not proof a skill is safe. Skill Federation still shows each skill's
+> license, provenance, and source, and **nothing installs without your approval**.
 
 ## 🔧 Configuration
 
