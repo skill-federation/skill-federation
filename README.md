@@ -6,7 +6,7 @@
 
 <!-- Row 1 — Traction & proof (emphasized: for-the-badge) -->
 [![Installs](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/skill-federation/skill-federation/badges/installs.json&label=installs&logo=serverless&logoColor=white&style=for-the-badge)](https://pypistats.org/packages/skillfed)
-[![Clones](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/skill-federation/skill-federation/badges/clones.json&label=clones&logo=github&logoColor=white&style=for-the-badge&cacheSeconds=1800)](https://github.com/skill-federation/skill-federation)
+[![Clones](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/skill-federation/skill-federation/badges/clones.json&label=clones&logo=github&logoColor=white&style=for-the-badge&cacheSeconds=300)](https://github.com/skill-federation/skill-federation)
 [![Stars](https://img.shields.io/github/stars/skill-federation/skill-federation?style=for-the-badge&color=E8C24A&logo=github&logoColor=white&cacheSeconds=1800)](https://github.com/skill-federation/skill-federation/stargazers)
 [![SkillsBench](https://img.shields.io/badge/SkillsBench-%2B30%25%20vs%20bare%20agent-E07A55?style=for-the-badge)](#-benchmark)
 
