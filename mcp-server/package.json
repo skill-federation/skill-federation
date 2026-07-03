@@ -1,7 +1,7 @@
 {
   "name": "skillfed-mcp",
   "version": "0.1.0",
-  "description": "Skill Federation finder as a Node MCP server — Python-free, zero-install via npx. Calls the hosted federation; Claude calls the tools directly.",
+  "description": "Find vetted agent skills for your task — Skill Federation finder as a Node MCP server. Zero-install via npx; exposes find_skills / get_skill_bundle tools to Claude and any MCP client. Python-free.",
   "type": "module",
   "bin": {
     "skillfed-mcp": "index.mjs"
@@ -21,10 +21,17 @@
   },
   "keywords": [
     "skill-federation",
+    "skillfed",
     "mcp",
-    "claude-code",
+    "mcp-server",
+    "model-context-protocol",
     "agent-skills",
-    "skill-discovery"
+    "skill-discovery",
+    "skill-search",
+    "claude-code",
+    "claude",
+    "ai-agents",
+    "coding-agent"
   ],
   "license": "MIT",
   "homepage": "https://github.com/skill-federation/skill-federation",
@@ -32,6 +39,9 @@
     "type": "git",
     "url": "https://github.com/skill-federation/skill-federation.git",
     "directory": "mcp-server"
+  },
+  "bugs": {
+    "url": "https://github.com/skill-federation/skill-federation/issues"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0"

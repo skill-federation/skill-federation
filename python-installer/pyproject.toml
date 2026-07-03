@@ -5,16 +5,34 @@ build-backend = "hatchling.build"
 [project]
 name = "skillfed"
 version = "0.1.0"
-description = "No-clone installer for Skill Federation — drops the curl-tier finder skill + /skillfed command into ~/.claude. Run via `uvx skillfed` or `pipx run skillfed`. Stdlib only, zero deps."
+description = "Find vetted agent skills for your task — no-clone installer for Skill Federation that drops the finder skill + /skillfed command into Claude Code (~/.claude). Run via `uvx skillfed` or `pipx run skillfed`. Stdlib only, zero deps."
 readme = "README.md"
 requires-python = ">=3.9"
 license = "MIT"
-keywords = ["skill-federation", "skillfed", "claude-code", "agent-skills", "installer"]
+keywords = ["skill-federation", "skillfed", "agent-skills", "skill-discovery", "skill-search", "claude-code", "claude", "mcp", "ai-agents", "coding-agent", "cli"]
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Intended Audience :: Developers",
+  "Environment :: Console",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Software Development :: Code Generators",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+  "Topic :: Utilities",
+]
 dependencies = []
 
 [project.urls]
 Homepage = "https://github.com/skill-federation/skill-federation"
 Repository = "https://github.com/skill-federation/skill-federation"
+Documentation = "https://github.com/skill-federation/skill-federation#readme"
+Changelog = "https://github.com/skill-federation/skill-federation/blob/main/CHANGELOG.md"
+Issues = "https://github.com/skill-federation/skill-federation/issues"
 
 [project.scripts]
 skillfed = "skillfed.cli:main"
