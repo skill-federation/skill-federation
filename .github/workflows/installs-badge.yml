@@ -11,11 +11,11 @@ name: Metrics · Badges
 # as the `TRAFFIC_TOKEN` secret to guarantee clone updates; without it, the clone badge holds its
 # last value (installs still update fine).
 #
-# Trigger: daily cron, or run manually.
+# Trigger: every 4 hours, or run manually.
 
 on:
   schedule:
-    - cron: '17 6 * * *'     # 06:17 UTC daily
+    - cron: '17 */4 * * *'   # every 4h at :17 past (00:17, 04:17, … UTC)
   workflow_dispatch:
 
 permissions:
