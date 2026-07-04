@@ -1,0 +1,54 @@
+name: Skill Sync · Drift Guard
+
+# The committed scraper-facing skill copy at `skills/skill-federation/` is GENERATED from the
+# canonical source `integrations/claude-code/skills/skill-federation/` by scripts/vendor-payload.mjs
+# (same single-source-of-truth pattern the installer payload uses). It must never be hand-edited.
+#
+# This guard re-runs the generator and fails if the committed copy drifts from canonical — so a
+# change to the canonical SKILL.md can't silently leave the public, aggregator-facing copy stale.
+#
+# Trigger: PRs and pushes that touch either the canonical source, the generated copy, or the script.
+
+on:
+  pull_request:
+    paths:
+      - 'integrations/claude-code/skills/**'
+      - 'skills/**'
+      - 'scripts/vendor-payload.mjs'
+      - '.github/workflows/skill-sync.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'integrations/claude-code/skills/**'
+      - 'skills/**'
+      - 'scripts/vendor-payload.mjs'
+      - '.github/workflows/skill-sync.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  drift-guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Regenerate vendored payload + root skill pointer
+        run: node scripts/vendor-payload.mjs
+
+      - name: Fail if the committed skill copy drifted from canonical
+        run: |
+          # --porcelain catches modified AND new-untracked files (a new canonical sibling that
+          # the generator copies in) — plain `git diff` would miss the latter.
+          drift="$(git status --porcelain -- skills/)"
+          if [ -n "$drift" ]; then
+            echo "::error::skills/ is out of sync with the canonical source." \
+                 "Run 'node scripts/vendor-payload.mjs' and commit the result." >&2
+            echo "$drift" >&2
+            exit 1
+          fi
