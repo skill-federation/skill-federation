@@ -6,6 +6,22 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.1.3] — 2026-07-03
+
+Discovery-surface release — makes Skill Federation findable where agents actually look: the
+official MCP registry and the Claude Code plugin system. No installer behavior change.
+
+### Added
+- **MCP registry manifest** — `mcp-server/server.json` (`io.github.skill-federation/skillfed-mcp`)
+  plus an `mcpName` field on `mcp-server/package.json`, so `skillfed-mcp` can be published to the
+  official MCP registry (registry.modelcontextprotocol.io). Publish runbook added to
+  `PUBLISHING.md`.
+- **Claude Code plugin marketplace** — `.claude-plugin/marketplace.json` lists the
+  `skill-federation` plugin, installable via `/plugin marketplace add skill-federation/skill-federation`.
+
+### Changed
+- **README** documents the `/plugin` install path alongside the existing `npx`/`uvx`/curl tiers.
+
 ## [0.1.2] — 2026-07-03
 
 Discoverability follow-up + release-pipeline hardening.
@@ -60,7 +76,8 @@ paths that all install the zero-runtime curl tier (the finder skill + `/skillfed
   fallback.
 - `mcp-server/package.json` gained a `repository` field (required for npm provenance).
 
-[Unreleased]: https://github.com/skill-federation/skill-federation/compare/v0.1.2...HEAD
+[Unreleased]: https://github.com/skill-federation/skill-federation/compare/v0.1.3...HEAD
+[0.1.3]: https://github.com/skill-federation/skill-federation/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/skill-federation/skill-federation/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/skill-federation/skill-federation/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/skill-federation/skill-federation/releases/tag/v0.1.0

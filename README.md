@@ -153,6 +153,13 @@ npx skillfed
 uvx skillfed
 ```
 
+**Prefer Claude Code's plugin system?** Add the marketplace and install the plugin:
+
+```text
+/plugin marketplace add skill-federation/skill-federation
+/plugin install skill-federation@skill-federation
+```
+
 **No Node or Python?** Ask Claude Code to install the curl version for you:
 
 ```text

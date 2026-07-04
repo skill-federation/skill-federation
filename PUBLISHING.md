@@ -46,6 +46,11 @@ git push origin v0.2.0          # both workflows fire; watch the Actions tab
 
 Then smoke-test: `npx -y skillfed@latest --help` and `uvx skillfed --help`.
 
+> [!IMPORTANT]
+> If you also publish to the **MCP Registry** (§4), keep `mcp-server/server.json` in lockstep:
+> its top-level `version` **and** `packages[0].version` must equal the `skillfed-mcp` version you
+> just published to npm. The registry rejects a `server.json` whose npm version isn't live.
+
 <details>
 <summary>How v0.1.0 was first bootstrapped (history + remaining cleanup)</summary>
 
@@ -182,3 +187,45 @@ uvx skillfed --help          # or:  pipx run skillfed --help
   `pipx run skillfed`, and the curl/`irm` bootstrap.
 - Tag the release (`git tag v0.1.0 && git push --tags`).
 - Future releases: bump the version, re-run `node scripts/vendor-payload.mjs`, rebuild, re-publish.
+
+---
+
+## 4. MCP Registry — `skillfed-mcp` (registry.modelcontextprotocol.io)
+
+Lists `skillfed-mcp` in the **official MCP registry**, which MCP clients query for server discovery.
+The registry stores only metadata — it validates against the **published npm package**, so the npm
+release must land *first*.
+
+Already committed to the repo (no action needed each release, just keep versions in sync):
+- [`mcp-server/server.json`](mcp-server/server.json) — the registry manifest
+  (`name: io.github.skill-federation/skillfed-mcp`).
+- `mcpName` field in [`mcp-server/package.json`](mcp-server/package.json) — the registry matches
+  this against `server.json`'s `name` to prove ownership. **It must ship inside the published npm
+  tarball**, so it's committed alongside the version bump.
+
+### One-time / per-release steps (interactive — needs GitHub auth)
+
+```bash
+# 1. Publish skillfed-mcp to npm WITH the mcpName field (via the normal tag pipeline in §"CI
+#    pipeline", or manually per §1). Confirm the field made it into the tarball:
+npm view skillfed-mcp@<version> mcpName        # → io.github.skill-federation/skillfed-mcp
+
+# 2. Install the mcp-publisher CLI (Windows PowerShell):
+$arch = if ([Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture -eq "Arm64") {"arm64"} else {"amd64"}
+Invoke-WebRequest "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_windows_$arch.tar.gz" -OutFile mcp-publisher.tar.gz
+tar xf mcp-publisher.tar.gz mcp-publisher.exe   # then put mcp-publisher.exe on PATH
+
+# 3. Authenticate. The io.github.skill-federation/ namespace requires the GitHub account you log in
+#    with to be a member of the skill-federation org (device-flow):
+mcp-publisher login github
+
+# 4. Publish (reads mcp-server/server.json):
+cd mcp-server
+mcp-publisher publish
+
+# 5. Verify:
+curl "https://registry.modelcontextprotocol.io/v0.1/servers?search=io.github.skill-federation/skillfed-mcp"
+```
+
+> Optional: automate step 4 in `release-npm.yml` after the npm publish — the registry ships an
+> official GitHub Action so future releases update the registry entry automatically.
