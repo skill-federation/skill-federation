@@ -19,6 +19,7 @@
 <!-- Row 3 — Trust & terms (compact: flat-square) -->
 [![License](https://img.shields.io/github/license/skill-federation/skill-federation?color=7C5CDB&style=flat-square)](LICENSE)
 ![Data sent](https://img.shields.io/badge/data%20sent-abstract%20wishes%20only-7C5CDB?style=flat-square)
+[![Agent Skill](https://img.shields.io/badge/Agent%20Skill-spec--conformant-2E9E6B?style=flat-square)](https://agentskills.io)
 
 <a href="https://skill-federation.github.io/"><img src="assets/demo.svg" alt="Running /skillfed to plan a launch for an open-source dev tool returns four vetted skill matches — multi-platform-launch, github-presence, community-building, product-analytics — to install" width="720"></a>
 
