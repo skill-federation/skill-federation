@@ -76,10 +76,20 @@ def _humanize(n: int) -> str:
 def main() -> int:
     npm = npm_total()
     pypi = pypi_total_no_mirrors()
-    total = (npm or 0) + (pypi or 0)
 
     if "--verbose" in sys.argv[1:]:
-        print(f"npm={npm} pypi_without_mirrors={pypi} combined={total}", file=sys.stderr)
+        print(f"npm={npm} pypi_without_mirrors={pypi}", file=sys.stderr)
+
+    # Fail closed: the badge is a cumulative total, so it must never decrease. If either
+    # channel is unreachable (timeout, pypistats 429, transient 5xx) its helper returns None.
+    # Publishing (npm or 0)+(pypi or 0) would silently drop the missing slice to zero and write
+    # a deflated total that reads as a real decline. Abort instead so the caller keeps the last
+    # good badge (see the workflow's `|| rm -f` guard).
+    if npm is None or pypi is None:
+        print(f"aborting: incomplete data (npm={npm}, pypi={pypi})", file=sys.stderr)
+        return 1
+
+    total = npm + pypi
 
     badge = {
         "schemaVersion": 1,

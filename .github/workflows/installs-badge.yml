@@ -42,7 +42,10 @@ jobs:
           GH_TRAFFIC_TOKEN: ${{ secrets.TRAFFIC_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          python3 scripts/installs_badge.py --verbose > "$RUNNER_TEMP/installs.json"
+          # installs: on hard failure (a channel unreachable) leave the previously published
+          # badge in place rather than writing a deflated npm-only total.
+          python3 scripts/installs_badge.py --verbose > "$RUNNER_TEMP/installs.json" \
+            || rm -f "$RUNNER_TEMP/installs.json"
           # clones: on hard failure with no ledger, leave the previously published badge in place
           python3 scripts/clones_badge.py --ledger "$RUNNER_TEMP/clones-ledger.json" \
             > "$RUNNER_TEMP/clones.json" || rm -f "$RUNNER_TEMP/clones.json"
@@ -59,7 +62,7 @@ jobs:
             git checkout --orphan badges
             git rm -rf . >/dev/null 2>&1 || true
           fi
-          cp "$RUNNER_TEMP/installs.json" installs.json
+          [ -f "$RUNNER_TEMP/installs.json" ] && cp "$RUNNER_TEMP/installs.json" installs.json || true
           cp "$RUNNER_TEMP/clones-ledger.json" clones-ledger.json
           [ -f "$RUNNER_TEMP/clones.json" ] && cp "$RUNNER_TEMP/clones.json" clones.json || true
           git add installs.json clones.json clones-ledger.json
