@@ -6,6 +6,20 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.1.1] — 2026-07-03
+
+Discoverability release — makes `skillfed` easier for coding agents and humans to find in the
+npm and PyPI registries. No installer behavior change.
+
+### Changed
+- **Package metadata across npm (`skillfed`, `skillfed-mcp`) and PyPI (`skillfed`)**: descriptions
+  now lead with intent (*"Find vetted agent skills for your task…"*); keyword lists expanded to
+  span the synonym space (`mcp`, `model-context-protocol`, `ai-agents`, `coding-agent`,
+  `skill-search`, …).
+- **PyPI**: added Trove classifiers (Development Status, Python 3.9–3.13, AI/dev-tools topics) and
+  project URLs (Documentation, Changelog, Issues).
+- **npm**: added `bugs` links on both packages.
+
 ## [0.1.0] — 2026-06-30
 
 First release. Skill Federation can now be installed **without cloning the repo**, via three
@@ -34,5 +48,6 @@ paths that all install the zero-runtime curl tier (the finder skill + `/skillfed
   fallback.
 - `mcp-server/package.json` gained a `repository` field (required for npm provenance).
 
-[Unreleased]: https://github.com/skill-federation/skill-federation/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/skill-federation/skill-federation/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/skill-federation/skill-federation/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/skill-federation/skill-federation/releases/tag/v0.1.0
