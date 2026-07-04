@@ -1,7 +1,7 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.skill-federation/skillfed-mcp",
-  "description": "Find vetted agent skills for your task — the Skill Federation finder as a Node MCP server. Exposes find_skills / get_skill_bundle over stdio; privacy-preserving, zero-install via npx.",
+  "description": "Find vetted agent skills for your task - privacy-preserving skill discovery over MCP.",
   "repository": {
     "url": "https://github.com/skill-federation/skill-federation",
     "source": "github"
