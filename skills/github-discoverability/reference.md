@@ -50,7 +50,7 @@ generator copies in.
 
 | Directory | How | Notes |
 |---|---|---|
-| **awesomeskills.dev / SkillsMP** | https://www.awesomeskills.dev/en/submit | Paste **repo-root URL**. Auto-parses `SKILL.md`. Appears immediately. Verify: `https://www.awesomeskills.dev/en/search?q=<term>` or `curl "https://skillsmp.com/api/v1/skills/search?q=<term>"`. |
+| **awesomeskills.dev / SkillsMP** | https://www.awesomeskills.dev/en/submit | Paste **repo-root URL** — the subfolder deep-link is unreliable (errors or silently fails to persist). Root URL auto-parses `SKILL.md` and appears immediately. A repo with several skills gets its extra skills on the next crawl, not per-submit. Verify: `https://www.awesomeskills.dev/en/search?q=<term>` or `curl "https://skillsmp.com/api/v1/skills/search?q=<term>"`. |
 
 Requirement it enforces: public repo + `SKILL.md` in root **or** `skills/SKILL.md` **or**
 `README.md` fallback + clear name/description.
