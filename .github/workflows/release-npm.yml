@@ -36,10 +36,27 @@ jobs:
 
       # `npm publish` in installer/ runs its prepack -> scripts/vendor-payload.mjs, so the
       # payload is vendored into the tarball automatically. OIDC handles auth + provenance.
+      #
+      # Each publish is guarded by a skip-if-already-published check so a PARTIAL failure is
+      # re-runnable: if one package already shipped this version, its step no-ops instead of
+      # failing the duplicate-version check and blocking the other package. (PyPI gets the same
+      # idempotence via `skip-existing: true`.)
       - name: Publish skillfed (installer/)
         working-directory: installer
-        run: npm publish --access public
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          if npm view "skillfed@$VERSION" version >/dev/null 2>&1; then
+            echo "skillfed@$VERSION already on npm — skipping."
+          else
+            npm publish --access public
+          fi
 
       - name: Publish skillfed-mcp (mcp-server/)
         working-directory: mcp-server
-        run: npm publish --access public
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          if npm view "skillfed-mcp@$VERSION" version >/dev/null 2>&1; then
+            echo "skillfed-mcp@$VERSION already on npm — skipping."
+          else
+            npm publish --access public
+          fi

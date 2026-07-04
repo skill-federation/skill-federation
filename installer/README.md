@@ -1,7 +1,9 @@
 # skillfed (npm installer)
 
-No-clone installer for [Skill Federation](https://github.com/skill-federation/skill-federation).
-Drops the curl-tier finder skill + `/skillfed` command into `~/.claude` (or `./.claude`).
+**Find vetted agent skills for your task, mid-flow** — a no-clone installer for
+[Skill Federation](https://github.com/skill-federation/skill-federation). Drops the curl-tier
+finder skill + `/skillfed` command into Claude Code (`~/.claude` or `./.claude`); only abstract
+wishes ever leave your machine.
 
 ```bash
 npx skillfed                  # curl tier, user scope (~/.claude)

@@ -1,6 +1,6 @@
 {
   "name": "skillfed",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Find vetted agent skills for your task — no-clone installer for Skill Federation that drops the finder skill + /skillfed command into Claude Code (~/.claude). Run via `npx skillfed`. Zero runtime deps.",
   "type": "module",
   "bin": {
