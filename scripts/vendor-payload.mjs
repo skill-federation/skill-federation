@@ -17,9 +17,10 @@ import { dirname, join } from 'node:path'
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const SRC = join(ROOT, 'integrations', 'claude-code')
 
-// canonical skill folder + its SKILL.md — the files every consumer of the payload needs
-const CANONICAL_SKILL_DIR = join(SRC, 'skills', 'skill-federation')
-const CANONICAL_SKILL = join(CANONICAL_SKILL_DIR, 'SKILL.md')
+// canonical skills live here. The installer payload ships ONLY the finder skill's SKILL.md
+// (skill-federation); the root mirror below exposes EVERY skill for aggregators.
+const SRC_SKILLS = join(SRC, 'skills')
+const CANONICAL_SKILL = join(SRC_SKILLS, 'skill-federation', 'SKILL.md')
 
 // canonical source -> vendored filename
 const FILES = [
@@ -34,13 +35,13 @@ const DESTS = [
   join(ROOT, 'python-installer', 'src', 'skillfed', 'payload'),
 ]
 
-// COMMITTED scraper-facing pointer. Unlike DESTS (git-ignored), this copy IS tracked in git so
+// COMMITTED scraper-facing mirror. Unlike DESTS (git-ignored), these copies ARE tracked in git so
 // skill aggregators/finders that walk the GitHub tree for a conventional `skills/<name>/SKILL.md`
-// discover us. The WHOLE canonical skill folder is mirrored (SKILL.md + demand-sketch.md + any
-// future siblings) so the copy is self-contained — relative links resolve and `gh skill install`
+// discover every skill we ship. Each canonical skill folder is mirrored whole (SKILL.md + any
+// sibling docs) so the copy is self-contained — relative links resolve and `gh skill install`
 // gets a complete skill. Generated here, never hand-edited; a CI drift-guard
 // (.github/workflows/skill-sync.yml) re-runs this script and fails on any diff under `skills/`.
-const ROOT_SKILL_DIR = join(ROOT, 'skills', 'skill-federation')
+const ROOT_SKILLS = join(ROOT, 'skills')
 
 let n = 0
 for (const dest of DESTS) {
@@ -55,15 +56,22 @@ for (const dest of DESTS) {
   }
 }
 
-// committed root pointer — mirror the full canonical skill folder (flat; no nested dirs today)
-mkdirSync(ROOT_SKILL_DIR, { recursive: true })
+// committed root mirror — every canonical skill folder → skills/<name>/ (files only; flat today)
 let rootN = 0
-for (const name of readdirSync(CANONICAL_SKILL_DIR)) {
-  const src = join(CANONICAL_SKILL_DIR, name)
-  if (!statSync(src).isFile()) continue
-  copyFileSync(src, join(ROOT_SKILL_DIR, name))
-  rootN++
+let skillCount = 0
+for (const skill of readdirSync(SRC_SKILLS)) {
+  const srcDir = join(SRC_SKILLS, skill)
+  if (!statSync(srcDir).isDirectory()) continue
+  const destDir = join(ROOT_SKILLS, skill)
+  mkdirSync(destDir, { recursive: true })
+  skillCount++
+  for (const name of readdirSync(srcDir)) {
+    const src = join(srcDir, name)
+    if (!statSync(src).isFile()) continue
+    copyFileSync(src, join(destDir, name))
+    rootN++
+  }
 }
 n += rootN
 
-console.log(`vendor-payload: copied ${FILES.length} files into ${DESTS.length} package(s) + ${rootN}-file root pointer (${n} writes)`)
+console.log(`vendor-payload: copied ${FILES.length} files into ${DESTS.length} package(s) + ${rootN} files across ${skillCount} root skill(s) (${n} writes)`)
