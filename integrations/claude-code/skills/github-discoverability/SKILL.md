@@ -59,7 +59,9 @@ per list after reading its `CONTRIBUTING.md` and checking its interaction limits
 ## Gotchas (hard-won)
 
 - **Nested `SKILL.md` is invisible** to convention scrapers → always expose a root-level path.
-- **awesomeskills.dev**: repo-root URL works; subfolder deep-link can return "Failed to save".
+- **awesomeskills.dev**: submit the **repo-root URL** — its per-skill subfolder deep-link is
+  unreliable (it errors, or silently accepts and never saves). Root URL indexes the repo's
+  primary skill; extra skills in the same repo get picked up on their next crawl, not on submit.
 - **Curated lists gate on maturity** — brand-new self-submissions are rejected by rule.
 - **Over-optimizing backfires** — irrelevant topics and duplicate PRs get you delisted.
 - **A generated/mirrored copy will drift** unless a CI check regenerates it and fails on diff.
