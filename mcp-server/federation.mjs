@@ -21,9 +21,16 @@
  *   SKILLFED_ENDPOINT   hosted API URL (REQUIRED — no local fallback here)
  *   SKILLFED_API_KEY    bearer token (OPTIONAL — qurini's demo is keyless)
  *   SKILLFED_TENANT     tenant id (default from $USER/$USERNAME or 'local')
+ *   SKILLFED_TIMEOUT_MS per-attempt HTTP timeout (default 60000)
+ *   SKILLFED_HTTP_ATTEMPTS transient HTTP attempts (default 3)
  */
 
-const TIMEOUT_MS = 15_000;
+const TIMEOUT_MS = Number.parseInt(process.env.SKILLFED_TIMEOUT_MS || "60000", 10);
+const MAX_ATTEMPTS = Math.max(
+  1,
+  Number.parseInt(process.env.SKILLFED_HTTP_ATTEMPTS || "3", 10)
+);
+const RETRYABLE_STATUS = new Set([408, 429, 500, 502, 503, 504]);
 
 export const ENDPOINT = (process.env.SKILLFED_ENDPOINT || "").replace(/\/+$/, "");
 const API_KEY = process.env.SKILLFED_API_KEY || "";
@@ -42,22 +49,35 @@ async function postJSON(path, payload) {
   const headers = { "Content-Type": "application/json" };
   if (API_KEY) headers["Authorization"] = `Bearer ${API_KEY}`; // demo is keyless
 
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
-  try {
-    const res = await fetch(`${ENDPOINT}${path}`, {
-      method: "POST",
-      headers,
-      body: JSON.stringify(payload),
-      signal: ctrl.signal,
-    });
-    if (!res.ok) {
-      throw new Error(`HTTP ${res.status} ${res.statusText} from ${path}`);
+  let lastError;
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
+    try {
+      const res = await fetch(`${ENDPOINT}${path}`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify(payload),
+        signal: ctrl.signal,
+      });
+      if (res.ok) return await res.json();
+      const error = new Error(`HTTP ${res.status} ${res.statusText} from ${path}`);
+      if (!RETRYABLE_STATUS.has(res.status)) throw error;
+      lastError = error;
+    } catch (error) {
+      if (error === lastError || error?.name === "AbortError" || error instanceof TypeError) {
+        lastError = error;
+      } else {
+        throw error;
+      }
+    } finally {
+      clearTimeout(timer);
     }
-    return await res.json();
-  } finally {
-    clearTimeout(timer);
+    if (attempt < MAX_ATTEMPTS) {
+      await new Promise((resolve) => setTimeout(resolve, 1000 * 2 ** (attempt - 1)));
+    }
   }
+  throw lastError;
 }
 
 export const federation = {

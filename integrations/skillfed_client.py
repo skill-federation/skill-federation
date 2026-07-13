@@ -27,12 +27,17 @@ Config (env):
   SKILLFED_API_KEY    bearer token (OPTIONAL — qurini's demo is keyless)
   SKILLFED_DATA       local index dir (default ../demo/demo_data)
   SKILLFED_TENANT     tenant id (default from $USER/$USERNAME or 'local')
+  SKILLFED_TIMEOUT_SECONDS per-attempt HTTP timeout (default 60)
+  SKILLFED_HTTP_ATTEMPTS transient HTTP attempts (default 3)
 """
 from __future__ import annotations
 
 import json
 import os
 import sys
+import time
+import urllib.error
+import urllib.request
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
@@ -41,6 +46,9 @@ ENDPOINT = os.environ.get("SKILLFED_ENDPOINT", "").rstrip("/")
 API_KEY = os.environ.get("SKILLFED_API_KEY", "")
 TENANT = (os.environ.get("SKILLFED_TENANT")
           or os.environ.get("USER") or os.environ.get("USERNAME") or "local")
+HTTP_TIMEOUT = float(os.environ.get("SKILLFED_TIMEOUT_SECONDS", "60"))
+HTTP_ATTEMPTS = max(1, int(os.environ.get("SKILLFED_HTTP_ATTEMPTS", "3")))
+RETRYABLE_STATUS = {408, 429, 500, 502, 503, 504}
 
 
 class SkillfedClient:
@@ -63,18 +71,29 @@ class SkillfedClient:
 
     # ── hosted backend (release) ──
     def _http(self, path: str, payload: dict) -> dict:
-        import urllib.request
         headers = {"Content-Type": "application/json"}
         if API_KEY:  # qurini's demo is keyless — only send auth when configured
             headers["Authorization"] = f"Bearer {API_KEY}"
-        req = urllib.request.Request(
-            f"{self.endpoint}{path}",
-            data=json.dumps(payload).encode(),
-            headers=headers,
-            method="POST",
-        )
-        with urllib.request.urlopen(req, timeout=15) as r:
-            return json.loads(r.read())
+        last_error = None
+        for attempt in range(HTTP_ATTEMPTS):
+            req = urllib.request.Request(
+                f"{self.endpoint}{path}",
+                data=json.dumps(payload).encode(),
+                headers=headers,
+                method="POST",
+            )
+            try:
+                with urllib.request.urlopen(req, timeout=HTTP_TIMEOUT) as r:
+                    return json.loads(r.read())
+            except urllib.error.HTTPError as exc:
+                if exc.code not in RETRYABLE_STATUS:
+                    raise
+                last_error = exc
+            except (urllib.error.URLError, TimeoutError) as exc:
+                last_error = exc
+            if attempt + 1 < HTTP_ATTEMPTS:
+                time.sleep(2 ** attempt)
+        raise last_error
 
     # ── public API (same shape regardless of backend) ──
     def search(self, wish: str, keywords=None, top_n: int = 6) -> dict:
