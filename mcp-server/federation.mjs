@@ -22,13 +22,18 @@
  *   SKILLFED_API_KEY    bearer token (OPTIONAL — qurini's demo is keyless)
  *   SKILLFED_TENANT     tenant id (default from $USER/$USERNAME or 'local')
  *   SKILLFED_TIMEOUT_MS per-attempt HTTP timeout (default 60000)
- *   SKILLFED_HTTP_ATTEMPTS transient HTTP attempts (default 3)
+ *   SKILLFED_HTTP_ATTEMPTS transient HTTP attempts (default 4)
+ *   SKILLFED_RETRY_BASE_MS initial retry delay (default 15000)
  */
 
 const TIMEOUT_MS = Number.parseInt(process.env.SKILLFED_TIMEOUT_MS || "60000", 10);
 const MAX_ATTEMPTS = Math.max(
   1,
-  Number.parseInt(process.env.SKILLFED_HTTP_ATTEMPTS || "3", 10)
+  Number.parseInt(process.env.SKILLFED_HTTP_ATTEMPTS || "4", 10)
+);
+const RETRY_BASE_MS = Math.max(
+  0,
+  Number.parseInt(process.env.SKILLFED_RETRY_BASE_MS || "15000", 10)
 );
 const RETRYABLE_STATUS = new Set([408, 429, 500, 502, 503, 504]);
 
@@ -74,7 +79,8 @@ async function postJSON(path, payload) {
       clearTimeout(timer);
     }
     if (attempt < MAX_ATTEMPTS) {
-      await new Promise((resolve) => setTimeout(resolve, 1000 * 2 ** (attempt - 1)));
+      const delay = Math.min(RETRY_BASE_MS * 2 ** (attempt - 1), 45_000);
+      await new Promise((resolve) => setTimeout(resolve, delay));
     }
   }
   throw lastError;

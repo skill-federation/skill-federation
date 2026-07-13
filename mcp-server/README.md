@@ -65,7 +65,8 @@ Add to your project `.mcp.json` (or `~/.claude.json`). The server installs nothi
 | `SKILLFED_TOP_N` | `5` | candidates per wish |
 | `SKILLFED_K` | `4` | paraphrase formulations concatenated per query |
 | `SKILLFED_TIMEOUT_MS` | `60000` | timeout for each hosted API attempt |
-| `SKILLFED_HTTP_ATTEMPTS` | `3` | attempts for transient network/408/429/5xx failures |
+| `SKILLFED_HTTP_ATTEMPTS` | `4` | attempts for transient network/408/429/5xx failures |
+| `SKILLFED_RETRY_BASE_MS` | `15000` | initial retry delay; subsequent delays back off to 45 seconds |
 
 ## Test without Claude
 

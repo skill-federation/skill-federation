@@ -28,7 +28,8 @@ Config (env):
   SKILLFED_DATA       local index dir (default ../demo/demo_data)
   SKILLFED_TENANT     tenant id (default from $USER/$USERNAME or 'local')
   SKILLFED_TIMEOUT_SECONDS per-attempt HTTP timeout (default 60)
-  SKILLFED_HTTP_ATTEMPTS transient HTTP attempts (default 3)
+  SKILLFED_HTTP_ATTEMPTS transient HTTP attempts (default 4)
+  SKILLFED_RETRY_BASE_SECONDS initial retry delay (default 15)
 """
 from __future__ import annotations
 
@@ -47,7 +48,10 @@ API_KEY = os.environ.get("SKILLFED_API_KEY", "")
 TENANT = (os.environ.get("SKILLFED_TENANT")
           or os.environ.get("USER") or os.environ.get("USERNAME") or "local")
 HTTP_TIMEOUT = float(os.environ.get("SKILLFED_TIMEOUT_SECONDS", "60"))
-HTTP_ATTEMPTS = max(1, int(os.environ.get("SKILLFED_HTTP_ATTEMPTS", "3")))
+HTTP_ATTEMPTS = max(1, int(os.environ.get("SKILLFED_HTTP_ATTEMPTS", "4")))
+RETRY_BASE_SECONDS = max(
+    0, float(os.environ.get("SKILLFED_RETRY_BASE_SECONDS", "15"))
+)
 RETRYABLE_STATUS = {408, 429, 500, 502, 503, 504}
 
 
@@ -92,7 +96,7 @@ class SkillfedClient:
             except (urllib.error.URLError, TimeoutError) as exc:
                 last_error = exc
             if attempt + 1 < HTTP_ATTEMPTS:
-                time.sleep(2 ** attempt)
+                time.sleep(min(RETRY_BASE_SECONDS * 2 ** attempt, 45))
         raise last_error
 
     # ── public API (same shape regardless of backend) ──
