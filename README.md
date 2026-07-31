@@ -31,6 +31,18 @@
 
 ---
 
+## Try a live search
+
+See real matches before installing anything:
+
+```bash
+npx skillfed find "optimize a slow PostgreSQL query using EXPLAIN and indexes"
+```
+
+The command reads no files and installs nothing. It sends only the exact text inside the quotes,
+so keep it capability-level and do not include code, secrets, customer data, or private task
+context. Each result includes its source, license class, and provenance for review.
+
 Your coding agent keeps rebuilding things that a packaged **skill** already does well — PDF
 extraction, market sizing, data cleaning, PR review, Slack notifications, SQL reporting. The
 skills exist, scattered across the open-source ecosystem. The problem is *finding the right one

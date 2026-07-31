@@ -6,6 +6,12 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+- **Instant search preview** — `npx skillfed find "<abstract capability wish>"` searches the live
+  catalog without installing anything, displays distinct trust-aware candidates, and supports
+  `--json` for scripting. It over-fetches before collapsing duplicate skill names so mirrored
+  catalog entries do not consume the visible result slots. Existing installer behavior is unchanged.
+
 ## [0.1.3] — 2026-07-03
 
 Discovery-surface release — makes Skill Federation findable where agents actually look: the
