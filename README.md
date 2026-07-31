@@ -155,7 +155,24 @@ skills pulled from a large, noisy public catalog.
 
 ## 📦 Install
 
-**One line — no clone needed.** You've already got Node or Python:
+**Codex, Cursor, Gemini CLI, Copilot, OpenCode, Claude Code, and more:**
+
+```bash
+npx skills add skill-federation/skill-federation --skill skill-federation
+```
+
+The open [`skills`](https://github.com/vercel-labs/skills) installer detects compatible agents
+and lets you choose the destination. Its default is project scope; add `--global` for your user
+profile or target one explicitly:
+
+```bash
+npx skills add skill-federation/skill-federation --skill skill-federation --agent codex --global
+```
+
+This installs the portable Agent Skill. It does not add Claude Code's `/skillfed` command or
+plan-approval hook.
+
+**Enhanced Claude Code integration — one line, no clone needed:**
 
 ```bash
 # Node — npm

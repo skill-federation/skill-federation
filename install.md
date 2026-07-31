@@ -1,9 +1,42 @@
 # Install Skill Federation
 
-One command. It auto-detects what's on your machine and installs the right tier — you don't
-choose wrong.
+Choose the portable Agent Skill for any supported coding agent, or the enhanced Claude Code
+integration with its `/skillfed` command and optional plan hook.
 
-## No-clone one-liners (recommended)
+## Any skills-compatible coding agent
+
+The repository follows the Agent Skills specification and is directly installable into Codex,
+Cursor, Gemini CLI, GitHub Copilot, OpenCode, Claude Code, and other compatible agents:
+
+```bash
+npx skills add skill-federation/skill-federation --skill skill-federation
+```
+
+The installer detects agents on your machine and prompts for destinations. Project scope is the
+default. Use `--global` for your user profile, or select an agent explicitly:
+
+```bash
+# Examples
+npx skills add skill-federation/skill-federation --skill skill-federation --agent codex --global
+npx skills add skill-federation/skill-federation --skill skill-federation --agent cursor --global
+npx skills add skill-federation/skill-federation --skill skill-federation --agent gemini-cli --global
+npx skills add skill-federation/skill-federation --skill skill-federation --agent github-copilot --global
+npx skills add skill-federation/skill-federation --skill skill-federation --agent opencode --global
+```
+
+This copies the portable `skill-federation` skill and its demand-sketch reference to the
+destination expected by each agent. It does not install Claude Code's `/skillfed` slash command
+or plan-approval hook.
+
+List the discoverable skills without installing:
+
+```bash
+npx skills add skill-federation/skill-federation --list
+```
+
+## Enhanced Claude Code integration
+
+These no-clone installers add the finder skill and `/skillfed` command to Claude Code:
 
 ```powershell
 # Windows (PowerShell) — irm|iex also sidesteps the script-execution-policy block

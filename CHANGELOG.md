@@ -12,6 +12,12 @@ All notable changes to this project are documented here. The format follows
   `--json` for scripting. It over-fetches before collapsing duplicate skill names so mirrored
   catalog entries do not consume the visible result slots. Existing installer behavior is unchanged.
 
+### Changed
+- **Portable multi-agent install** — the main install docs now include the verified
+  `npx skills add skill-federation/skill-federation --skill skill-federation` path for Codex,
+  Cursor, Gemini CLI, GitHub Copilot, OpenCode, Claude Code, and other Agent Skills clients.
+  Claude Code's enhanced slash-command and hook installers remain available separately.
+
 ## [0.1.3] — 2026-07-03
 
 Discovery-surface release — makes Skill Federation findable where agents actually look: the
