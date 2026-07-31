@@ -3,7 +3,8 @@
 **Find vetted agent skills for your task, mid-flow** — a no-clone installer for
 [Skill Federation](https://github.com/skill-federation/skill-federation). Drops the curl-tier
 finder skill + `/skillfed` command into Claude Code (`~/.claude` or `./.claude`); only abstract
-wishes ever leave your machine.
+wishes ever leave your machine. Browse and search the indexed catalog on the web at
+[skillfed.io](https://skillfed.io).
 
 ```bash
 uvx skillfed                  # curl tier, user scope (~/.claude)

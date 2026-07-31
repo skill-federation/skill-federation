@@ -27,6 +27,8 @@
 
 *A bare agent solves 17.5% of SkillsBench tasks. With Skill Federation, 22.8% — and your work never leaves your machine.*
 
+**Browse and search the indexed skill catalog on the web → [skillfed.io](https://skillfed.io)**
+
 </div>
 
 ---

@@ -28,7 +28,7 @@ classifiers = [
 dependencies = []
 
 [project.urls]
-Homepage = "https://github.com/skill-federation/skill-federation"
+Homepage = "https://skillfed.io"
 Repository = "https://github.com/skill-federation/skill-federation"
 Documentation = "https://github.com/skill-federation/skill-federation#readme"
 Changelog = "https://github.com/skill-federation/skill-federation/blob/main/CHANGELOG.md"

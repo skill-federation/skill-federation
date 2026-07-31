@@ -1,7 +1,8 @@
 # skillfed-mcp — optional Node MCP server
 
 **Find vetted agent skills for your task** — exposes the Skill Federation finder to Claude and
-any MCP client as first-class MCP tools (`find_skills`, `get_skill_bundle`).
+any MCP client as first-class MCP tools (`find_skills`, `get_skill_bundle`). The indexed catalog
+it searches is browsable on the web at [skillfed.io](https://skillfed.io).
 
 > **This is the optional Node tier.** The **default** Skill Federation install is the
 > runtime-free **curl-based plugin** under `../integrations/claude-code/` — it needs no

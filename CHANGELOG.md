@@ -6,6 +6,13 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Changed
+- **Package homepages point at the web catalog** — npm `skillfed`/`skillfed-mcp` `homepage` and
+  PyPI `skillfed` `[project.urls] Homepage` now link to <https://skillfed.io> (Repository/Issues
+  stay on GitHub). Registry pages pick this up on the next publish.
+- **READMEs link the catalog** — repo README + all three package READMEs now point to the
+  browsable indexed catalog at [skillfed.io](https://skillfed.io).
+
 ## [0.1.3] — 2026-07-03
 
 Discovery-surface release — makes Skill Federation findable where agents actually look: the
