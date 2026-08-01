@@ -63,7 +63,7 @@ normally and let the skill offer itself.
 | Tier | Needs | Installed by | Gets you |
 |---|---|---|---|
 | **curl** (default, always) | nothing — `curl` ships with Win10+/macOS | every run | the finder skill + `/skillfed` command, runtime-free |
-| **hooks** (optional) | nothing | `--hook start\|end\|both` / `-Hook` | 0–2 planning nudges — `start` as you enter plan mode, `end` after a plan is approved |
+| **hooks** (optional) | nothing | `--hook start\|end\|both` / `-Hook` | 0–2 planning nudges — `start` on prompts submitted while in plan mode, `end` after a plan is approved |
 | **npx** (Node MCP) | Node ≥18 | `--with-npx` / `-WithNpx` | Claude calls typed `find_skills`/… tools instead of shelling out |
 | **python** | a Python interpreter | `--with-python` / `-WithPython` | prints the advanced/CI env-var setup |
 

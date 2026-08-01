@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 380" width="820" height="380"
-     role="img" aria-label="How Skill Federation works: on your machine a plan starts or is approved and the agent writes abstract wishes; only the abstract wish crosses the boundary to the federation, which returns ranked candidates; the agent shows a trust review, reads the promising skills in context as field notes, and installs one to .claude/skills only if you will reuse it. Your plan, files, and outputs never leave your machine.">
+     role="img" aria-label="How Skill Federation works: on your machine the agent hits a moment worth checking — starting or finishing a plan, a gap mid-task, or your request — and writes abstract wishes; only the abstract wish crosses the boundary to the federation, which returns ranked candidates; the agent shows a trust review, reads several skills in context as field notes, and installs one to .claude/skills only in the rare case you will reuse it. Your plan, files, and outputs never leave your machine.">
   <title>How it works — only the abstract wish crosses the boundary</title>
-  <desc>A flow diagram split by a dashed boundary. Left ("Your machine"): a plan starts — or is approved, or a gap turns up mid-task — then the agent writes abstract wishes. A single arrow labeled "only the abstract wish" crosses to the right ("Federation"), which runs a lexical search over vetted skills and returns ranked candidates. Back on the left: Trust review (you approve), then the agent reads the notes in context and installs only what you will reuse. A pinned note states your plan, files, and outputs never leave your machine.</desc>
+  <desc>A flow diagram split by a dashed boundary. Left ("Your machine"): the agent is starting or finishing a plan, or a gap turns up mid-task, or you ask — then it writes abstract wishes. A single arrow labeled "only the abstract wish" crosses to the right ("Federation"), which runs a lexical search over vetted skills and returns ranked candidates. Back on the left: Trust review (you approve), then the agent reads the notes in context as field notes and installs only the rare one you will reuse. A pinned note states your plan, files, and outputs never leave your machine.</desc>
 
   <style>
     .sans { font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
@@ -48,8 +48,8 @@
       <rect class="node" x="40" y="116" width="250" height="40" rx="12"/>
       <circle cx="64" cy="136" r="10" fill="#7C5CDB" fill-opacity="0.14"/>
       <text x="64" y="140" text-anchor="middle" font-size="12" font-weight="700" fill="#7C5CDB">1</text>
-      <text x="84" y="133" class="ink" font-size="13.5" font-weight="600">Plan starts — or is approved</text>
-      <text x="84" y="148" class="muted" font-size="10.5">or a gap turns up mid-task</text>
+      <text x="84" y="133" class="ink" font-size="13.5" font-weight="600">Starting or finishing a plan</text>
+      <text x="84" y="148" class="muted" font-size="10.5">or a gap mid-task, or on request</text>
     </g>
     <!-- N2 -->
     <g class="in d2">

@@ -300,9 +300,13 @@ its own and can be pasted into a plain chat. With no tooling and only web access
 procedure is these four lines (this document is the instructions; there is nothing else to
 fetch first):
 
-- **Find:** search the web for the capability plus "skill", or browse
-  [skillfed.io](https://skillfed.io) directly — the `/best/{term}` hubs, the publisher pages, or
-  `/api/index.json`.
+- **Find:** fetch a catalog index and scan it for terms from the task —
+  `https://skillfed.io/.well-known/agent-skills/index.json` (~511 entries, each carrying a direct
+  `.md` URL) or `https://skillfed.io/api/index.json` (701 entries, 500 per page, follow `next`,
+  carries publisher and license). If the task matches a published roundup,
+  [skillfed.io/blog](https://skillfed.io/blog) is cheaper and already curated. **Don't lead with
+  web search** — the site isn't indexed yet, so a search-first attempt comes back empty and looks
+  like the catalog is.
 - **Read:** append `.md` to any skill page URL to get the full body. That is the whole of Hop 2
   in one GET.
 - **Use:** exactly as in Hop 2 above — pull several, mine them for what bears on the task, and

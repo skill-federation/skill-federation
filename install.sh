@@ -255,9 +255,10 @@ if [ $WITH_PYTHON = 1 ]; then
     echo "  export SKILLFED_ENDPOINT=\"$ENDPOINT\""
     echo "  smoke test: python3 \"$SCRIPT_DIR/integrations/search_wishlist.py\" \"$SCRIPT_DIR/integrations/sample_wishlist.json\""
   else
-    # No checkout: the advanced helpers live in the repo, or use the pip installer.
-    echo "  the advanced Python helpers need the repo on disk - clone it, or:"
-    echo "  uvx skillfed --with-python   (see python-installer/)"
+    # No checkout: the advanced helpers only exist in the repo. Do NOT point at
+    # `uvx skillfed --with-python` - that flag is curl-installer-only, so argparse exits 2.
+    echo "  the advanced Python helpers need the repo on disk:"
+    echo "  git clone https://github.com/skill-federation/skill-federation   (see integrations/)"
     echo "  export SKILLFED_ENDPOINT=\"$ENDPOINT\""
   fi
 fi
