@@ -1,0 +1,32 @@
+name: Tests
+
+# The suite lives in mcp-server/test/ but covers the whole repo: the wish-list validator and
+# the top_n clamp, the tool schemas, both hook payloads, and the three packaging whitelists
+# that decide what actually ships (vendor-payload FILES, installer files[], mcp-server files[]).
+#
+# node --test only, no devDependencies, no `npm install` step: tools.mjs and findSkills.mjs are
+# dependency-free by design, and the MCP SDK is only needed by index.mjs, which the tests never
+# import. So a clean checkout is enough — keep it that way.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  node-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: node --test
+        working-directory: mcp-server
+        run: npm test

@@ -6,17 +6,30 @@
  * out to Python, no $SKILLFED_PY, no venv. Distributed via `npx -y skillfed-mcp`,
  * so the only runtime is the Node that Claude Code already ships.
  *
+ * The model these tools implement is CONSULT MANY, INSTALL RARELY: search as often as the
+ * work needs, fetch several bodies and read them as field notes on current practice, install
+ * only what will be reused — and only with the user's approval. Nothing here writes to disk;
+ * the client agent does that, at Hop 3, if it ever gets there.
+ *
  * Tools (contracts/federation-mcp-tools.md):
  *   find_skills          — lexical-recall search over a wish-list (the only discovery path)
- *   get_skill_bundle     — fetch a confirmed match's bundle for install
- *   report_selection     — per-wish agentic-selection outcome (label flywheel)
- *   emit_demand_pointer   — record a build-spec sketch on a miss (empty OR all-rejected)
+ *   get_skill_bundle     — fetch a skill's full text to READ (purpose "hint", the default)
+ *                          or to install (purpose "install"); the tag is echoed back
+ *   report_selection     — per-wish outcome map {skill_id: [Install|Read|Reject, why]},
+ *                          dual-written with the legacy chosen/rejected (label flywheel).
+ *                          ADVISORY: a failed report is never a task error.
+ *   emit_demand_pointer   — record a build-spec sketch on a miss (empty OR all-rejected).
+ *                          ADVISORY too — a demand pointer IS a report, and the miss path is
+ *                          already the bad day; a flaky endpoint must not also fail the task.
  *
  * PRIVACY (Principle IV): only abstracted wishes (description + paraphrased formulations
  * + keywords) and, on a miss, a capability sketch ever cross the boundary. Never the plan/brief/output.
  *
  * Config (env): SKILLFED_ENDPOINT (required), SKILLFED_API_KEY (optional),
- * SKILLFED_TENANT, SKILLFED_TOP_N (5), SKILLFED_K (4).
+ * SKILLFED_TENANT, SKILLFED_TOP_N (10, clamped to the remote's 1–25), SKILLFED_K (4).
+ *
+ * Tool SCHEMAS live in tools.mjs — this file connects a stdio transport at the top level,
+ * so it can never be imported (by a test or anything else) without starting a server.
  */
 
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
@@ -28,142 +41,7 @@ import {
 
 import { federation } from "./federation.mjs";
 import { findSkills } from "./findSkills.mjs";
-
-const WISH_SCHEMA = {
-  type: "object",
-  required: ["name", "description", "keywords"],
-  properties: {
-    name: { type: "string", description: "short hypothetical skill name" },
-    description: {
-      type: "string",
-      description: "one-line, display-only; abstract, no plan specifics",
-    },
-    keywords: {
-      type: "array",
-      items: { type: "string" },
-      minItems: 1,
-      maxItems: 5,
-      description:
-        "1–5 evidence terms the description omits but the target skill's docs would contain",
-    },
-    formulations: {
-      type: "array",
-      items: { type: "string" },
-      description:
-        "~4 vocabulary-varied paraphrases of the description (the load-bearing recall field)",
-    },
-    sketch: {
-      type: "object",
-      description:
-        "structured expected-response sketch (SIRA step i) — a capability-level hypothesis of " +
-        "the ideal skill. Its flattened terms are appended to the search query, and on a miss " +
-        "it is emitted unchanged as the demand pointer (see demand-sketch.md). " +
-        "Capability-level only — never the plan, brief, outputs, or any tenant data.",
-      properties: {
-        purpose: { type: "string", description: "one line — what the missing skill should do" },
-        inputs: { type: "array", items: { type: "string" } },
-        outputs: { type: "array", items: { type: "string" } },
-        operations: { type: "array", items: { type: "string" } },
-        domain_vocab: {
-          type: "array",
-          items: { type: "string" },
-          description: "discriminative domain terms a matching SKILL.md would contain",
-        },
-        section_sketch: { type: "string", description: "terse `·`-separated skill outline" },
-        tags: { type: "array", items: { type: "string" } },
-      },
-    },
-  },
-};
-
-const TOOLS = [
-  {
-    name: "find_skills",
-    description:
-      "Search a federated catalog of vetted agent skills for a privacy-abstracted wish-list. " +
-      "Returns up to k recall candidates per wish (the client agent makes the final pick). " +
-      "Send only abstracted wishes — never the plan, brief, outputs, or any tenant data.",
-    inputSchema: {
-      type: "object",
-      required: ["wishlist"],
-      properties: {
-        wishlist: {
-          type: "array",
-          minItems: 1,
-          maxItems: 10,
-          items: WISH_SCHEMA,
-          description: "1–10 wishes, each an ideal skill for the task",
-        },
-      },
-    },
-  },
-  {
-    name: "get_skill_bundle",
-    description:
-      "Fetch a confirmed match's bundle (SKILL.md + any extra files) for local install. " +
-      "Surface license/provenance/security_flags before installing.",
-    inputSchema: {
-      type: "object",
-      required: ["skill_id"],
-      properties: {
-        skill_id: { type: "string" },
-      },
-    },
-  },
-  {
-    name: "report_selection",
-    description:
-      "Report one wish's agentic-selection outcome. chosen = the selected skill id, or the literal " +
-      "string \"None\" when every candidate was rejected (a retrieval-quality label, complementary to " +
-      "a demand pointer — not a substitute for it). rejected = the other shown candidate ids.",
-    inputSchema: {
-      type: "object",
-      required: ["query_id", "chosen"],
-      properties: {
-        query_id: { type: "string" },
-        chosen: {
-          type: "string",
-          description: "selected skill id, or the literal \"None\" if all candidates were rejected",
-        },
-        rejected: {
-          type: "array",
-          items: { type: "string" },
-          description: "the other shown candidate ids (hard negatives)",
-        },
-      },
-    },
-  },
-  {
-    name: "emit_demand_pointer",
-    description:
-      "Record a missing capability on a MISS — a wish that returned zero candidates (empty), OR one " +
-      "where you rejected every candidate (the rejection reasoning reveals the gap). Pass the searched " +
-      "`wish` string plus a `sketch` STRING built per demand-sketch.md (a single-line JSON of " +
-      "purpose/inputs/outputs/operations/domain_vocab/section_sketch, prefixed with the query_id). " +
-      "Capability-level abstraction only — never plan/brief/output/data.",
-    inputSchema: {
-      type: "object",
-      required: ["wish", "sketch"],
-      properties: {
-        wish: {
-          type: "string",
-          description: "the exact wish string you searched (the traceability anchor; required, non-empty)",
-        },
-        sketch: {
-          type: "string",
-          description:
-            "condensed build spec per demand-sketch.md: \"<query_id>: <minified-json>\" (a STRING, not an object)",
-        },
-        query_id: {
-          type: "string",
-          description: "optional; prepended to sketch as the trace if not already embedded",
-        },
-        tags: { type: "array", items: { type: "string" } },
-        source: { type: "string", default: "unmatched_wish" },
-      },
-    },
-  },
-];
+import { TOOLS } from "./tools.mjs";
 
 function jsonResult(obj) {
   return { content: [{ type: "text", text: JSON.stringify(obj, null, 2) }] };
@@ -176,8 +54,26 @@ function errorResult(code, detail) {
   };
 }
 
+/**
+ * Reporting feeds the label flywheel; it is never part of the user's task. A 4xx, a dead
+ * endpoint or a malformed map must therefore not reach the agent as a tool error — that
+ * would derail work over telemetry. Swallow it, note it on stderr (stdout is the MCP
+ * transport), and hand back a plain non-error result saying it wasn't recorded.
+ */
+async function advisory(label, fn) {
+  try {
+    return { reported: true, ...(await fn()) };
+  } catch (e) {
+    const note = `${label} not recorded: ${e.name || "Error"}: ${e.message}`;
+    console.error(`[skillfed-mcp] ${note}`);
+    return { reported: false, note };
+  }
+}
+
+// Keep `version` equal to mcp-server/package.json — it is what an MCP client displays, and it
+// silently rotted from 0.1.0 through three releases. test/version.test.mjs asserts the pair.
 const server = new Server(
-  { name: "skillfed-mcp", version: "0.1.0" },
+  { name: "skillfed-mcp", version: "0.2.0" },
   { capabilities: { tools: {} } }
 );
 
@@ -187,18 +83,36 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
   const { name, arguments: args = {} } = req.params;
   try {
     switch (name) {
+      // Pass `args` whole: unwrapping to args.wishlist would drop sibling fields such as
+      // top_n. validateWishlist accepts both the bare array and the {wishlist} shape.
       case "find_skills":
-        return jsonResult(await findSkills(args.wishlist ?? args));
-      case "get_skill_bundle":
-        return jsonResult(await federation.fetch(args.skill_id));
+        return jsonResult(await findSkills(args));
+      case "get_skill_bundle": {
+        // Unknown values fall back to "hint" — the reading default writes nothing, so
+        // guessing wrong here is harmless in the direction that matters.
+        const purpose = args.purpose === "install" ? "install" : "hint";
+        const bundle = await federation.fetch(args.skill_id, purpose);
+        return jsonResult({ ...bundle, purpose });
+      }
       case "report_selection":
         return jsonResult(
-          await federation.reportSelection(args.query_id, args.chosen, args.rejected || [])
+          await advisory("selection", () =>
+            federation.reportSelection(args.query_id, {
+              outcomes: args.outcomes,
+              chosen: args.chosen,
+              rejected: args.rejected,
+            })
+          )
         );
+      // Advisory for the same reason report_selection is: a demand pointer is bookkeeping, and
+      // it fires on the path where the wish ALREADY came back empty. Surfacing a dead endpoint
+      // as isError there would turn telemetry into a visible task failure.
       case "emit_demand_pointer":
         return jsonResult(
-          await federation.emitDemandPointer(
-            args.wish, args.sketch, args.query_id || null, args.tags || [], args.source || "unmatched_wish"
+          await advisory("demand", () =>
+            federation.emitDemandPointer(
+              args.wish, args.sketch, args.query_id || null, args.tags || [], args.source || "unmatched_wish"
+            )
           )
         );
       default:

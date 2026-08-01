@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 400" width="720" height="400"
-     role="img" aria-label="Terminal demo: /skillfed plans a launch for an open-source dev tool by sending four abstract wishes; the federation returns ranked matches and the agent selects multi-platform-launch, github-presence, community-building and product-analytics, each shown with license, provenance and star metadata, to install into .claude/skills.">
+     role="img" aria-label="Terminal demo: /skillfed plans a launch for an open-source dev tool by sending four abstract wishes; the federation returns ranked matches and the agent reads multi-platform-launch, github-presence, community-building and product-analytics in context, each shown with license, provenance and star metadata, then offers to install only the one you will reuse into .claude/skills.">
   <title>Skill Federation — /skillfed demo</title>
-  <desc>An animated terminal runs /skillfed plan a launch for my open-source dev tool. Only four abstract capability wishes cross the boundary. The federation returns ranked matches and the agent selects one skill per wish — multi-platform-launch, github-presence and community-building (review-licensed, verified) and product-analytics (permissive, verified, 221 stars) — each picked from several ranked candidates. A prompt offers to install the four into .claude/skills with license and source attribution.</desc>
+  <desc>An animated terminal runs /skillfed plan a launch for my open-source dev tool. Only four abstract capability wishes cross the boundary. The federation returns ranked matches and the agent reads one skill per wish in context as field notes — multi-platform-launch, github-presence and community-building (review-licensed, verified) and product-analytics (permissive, verified, 221 stars) — each picked from ten ranked candidates. All four are read without anything being written to disk; a prompt then offers to install just the one skill you will reuse into .claude/skills, with license and source attribution.</desc>
 
   <style>
     .mono { font-family: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace; }
@@ -82,14 +82,15 @@
   </g>
 
   <!-- honesty note: each pick came from a ranked list -->
-  <text class="mono l l6 muted" x="30" y="278" font-size="12">each picked from 5 ranked candidates — license · provenance · stars shown for every one</text>
+  <text class="mono l l6 muted" x="30" y="278" font-size="12">each picked from 10 ranked candidates — license · provenance · stars shown for every one</text>
 
-  <!-- install prompt -->
+  <!-- read is the default; install is the exception -->
   <g class="l l7">
-    <text x="30" y="322" class="mono" font-size="13"><tspan class="violet">✦ </tspan><tspan class="soft">Install the 4 selected? → </tspan><tspan class="ink">.claude/skills/</tspan><tspan class="soft"> with license + source.</tspan></text>
+    <text x="30" y="322" class="mono" font-size="13"><tspan class="violet">✦ </tspan><tspan class="soft">Read all 4 in context — nothing hits disk. Install only what you'll reuse:</tspan></text>
     <rect x="30" y="338" width="96" height="30" rx="15" fill="#7C5CDB"/>
-    <text x="78" y="358" text-anchor="middle" class="mono" font-size="13" fill="#FFFFFF">Install</text>
-    <rect x="136" y="338" width="112" height="30" rx="15" fill="none" stroke="#1E1B16" stroke-opacity="0.25"/>
-    <text x="192" y="358" text-anchor="middle" class="mono soft" font-size="13">Review each</text>
+    <text x="78" y="358" text-anchor="middle" class="mono" font-size="13" fill="#FFFFFF">Read 4</text>
+    <rect x="136" y="338" width="110" height="30" rx="15" fill="none" stroke="#1E1B16" stroke-opacity="0.25"/>
+    <text x="191" y="358" text-anchor="middle" class="mono soft" font-size="13">Install 1</text>
+    <text x="262" y="358" class="mono muted" font-size="12">→ .claude/skills/ with license + source</text>
   </g>
 </svg>

@@ -36,13 +36,21 @@ publisher; npm became tokenless after v0.1.0, since npm only lets you configure 
 ### Release a new version
 
 ```bash
-# 1. bump the version in all four manifests:
+# 1. bump the version in all SIX manifests (five files; server.json holds two version fields):
 #    installer/package.json · python-installer/pyproject.toml ·
-#    mcp-server/package.json · integrations/claude-code/.claude-plugin/plugin.json
+#    mcp-server/package.json · integrations/claude-code/.claude-plugin/plugin.json ·
+#    .claude-plugin/marketplace.json      <- the one the old four-item list forgot; it was
+#                                            stranded at 0.1.2 across two releases because of it
+#    mcp-server/server.json               <- BOTH `version` and `packages[0].version` (§4)
 # 2. tag + push:
 git tag v0.2.0
 git push origin v0.2.0          # both workflows fire; watch the Actions tab
 ```
+
+> [!NOTE]
+> `mcp-server/index.mjs` also declares a `version` in its `new Server({...})` handshake — that is
+> what an MCP client displays. `mcp-server/test/version.test.mjs` asserts it equals
+> `mcp-server/package.json`, so a missed bump fails the suite rather than shipping quietly.
 
 Then smoke-test: `npx -y skillfed@latest --help` and `uvx skillfed --help`.
 
@@ -82,15 +90,15 @@ elsewhere.
 ### 0. One-time prep
 
 ```bash
-# from the repo root, vendor the 3 payload files into both packages
+# from the repo root, vendor the 6 payload files into both packages
 node scripts/vendor-payload.mjs
 ```
 
 `npm publish` runs this automatically (via `installer/`'s `prepack`), but the Python build does
 **not** — so always run it before `python -m build`.
 
-Both packages are at version `0.1.0`. A registry refuses to overwrite an existing version, so
-**bump the version** (in `package.json` / `pyproject.toml`) before every re-publish.
+A registry refuses to overwrite an existing version, so **bump every manifest** (the list under
+*Release a new version* above) before every re-publish.
 
 ---
 
@@ -115,7 +123,11 @@ npm view skillfed            # "npm error 404 ... is not in this registry" = ava
 ```bash
 cd installer
 npm publish --dry-run    # runs prepack (vendors payload) + lists the exact files that ship
-# review the file list: it MUST include cli.mjs + payload/SKILL.md, plan_nudge.json, skillfed.md
+# review the file list: it MUST include cli.mjs plus ALL SIX payload files —
+#   payload/{SKILL.md, demand-sketch.md, plan_nudge.json, plan_start_nudge.json,
+#            start_nudge.sh, skillfed.md}
+# (files[] in installer/package.json is an explicit whitelist; mcp-server/test/payload.test.mjs
+#  asserts it covers every vendored file, because omitting one fails silently at publish time)
 npm publish              # unscoped public name → no --access flag needed; enter your 2FA OTP
 ```
 

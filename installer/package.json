@@ -1,6 +1,6 @@
 {
   "name": "skillfed",
-  "version": "0.1.3",
+  "version": "0.2.0",
   "description": "Find vetted agent skills for your task — no-clone installer for Skill Federation that drops the finder skill + /skillfed command into Claude Code (~/.claude). Run via `npx skillfed`. Zero runtime deps.",
   "type": "module",
   "bin": {
@@ -9,7 +9,10 @@
   "files": [
     "cli.mjs",
     "payload/SKILL.md",
+    "payload/demand-sketch.md",
     "payload/plan_nudge.json",
+    "payload/plan_start_nudge.json",
+    "payload/start_nudge.sh",
     "payload/skillfed.md"
   ],
   "engines": {

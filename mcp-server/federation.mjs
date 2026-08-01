@@ -8,8 +8,9 @@
  *
  * qurini endpoints ↔ our five MCP tools (contracts/federation-mcp-tools.md):
  *   /search           ↔ find_skills        (per-wish; batching emulated in findSkills.mjs)
- *   /fetch            ↔ get_skill_bundle
- *   /report_selection ↔ report_selection   (per-wish: chosen + rejected ids)
+ *   /fetch            ↔ get_skill_bundle   (carries `purpose`: hint = read, install = write)
+ *   /report_selection ↔ report_selection   (per-wish outcome map, dual-written with the
+ *                                           legacy chosen/rejected the endpoint requires)
  *   /report_demand    ↔ emit_demand_pointer (carries the structured sketch)
  *   (no analogue)     ↔ submit_suggestion   (reflection loop — out of this first pass)
  *
@@ -60,10 +61,90 @@ async function postJSON(path, payload) {
   }
 }
 
+const OUTCOMES = ["Install", "Read", "Reject"];
+
+/** Canonical spelling of an outcome, or null if it isn't one of the three. */
+function canonOutcome(v) {
+  const s = String(v ?? "").trim().toLowerCase();
+  return OUTCOMES.find((o) => o.toLowerCase() === s) || null;
+}
+
+// Near-misses we can still READ, for the legacy projection only. The map keeps whatever word
+// the agent used; this table only decides whether that word meant "used it" or "dismissed it",
+// so that "Used" / "read it" / "Consulted" cannot collapse into chosen:"None" — which would
+// record the exact opposite of what happened (a hard negative for a wish the catalog answered).
+const OUTCOME_SYNONYMS = [
+  [/^(install(ed)?|adopt(ed)?|sav(e|ed)|kept|keep)\b/, "Install"],
+  [/^(read|reading|use[ds]?|useful|consult(ed)?|referenc(e|ed)|applied|help(ed|ful)?|hit)\b/, "Read"],
+  [/^(reject(ed)?|dismiss(ed)?|discard(ed)?|skip(ped)?|ignor(e|ed)|irrelevant|unused|no|none|not used)\b/, "Reject"],
+];
+
+/** What an outcome LABEL means for the legacy pair — Install|Read|Reject, or null if unreadable. */
+function outcomeKind(label) {
+  const exact = canonOutcome(label);
+  if (exact) return exact;
+  const s = String(label ?? "").trim().toLowerCase();
+  for (const [re, kind] of OUTCOME_SYNONYMS) if (re.test(s)) return kind;
+  return null;
+}
+
+/**
+ * Coerce the reported map into {skill_id: [outcome, reasoning]}; {} when it is not one.
+ *
+ * A JSON *string* is parsed before we give up: serializing `outcomes` as a string is an
+ * expected mistake, because the sibling `sketch` field is documented over and over as
+ * "a STRING, not an object". An unrecognized outcome WORD is passed through verbatim rather
+ * than dropped — it is still a label worth recording; deriveLegacy decides separately whether
+ * it can be projected onto the old shape.
+ */
+function normOutcomes(raw) {
+  let src = raw;
+  if (typeof src === "string") {
+    try {
+      src = JSON.parse(src);
+    } catch {
+      return {};
+    }
+  }
+  if (typeof src !== "object" || src === null || Array.isArray(src)) return {};
+  const out = {};
+  for (const [id, val] of Object.entries(src)) {
+    const key = String(id).trim();
+    if (!key) continue;
+    const pair = Array.isArray(val) ? val : [val];
+    const outcome = canonOutcome(pair[0]) || String(pair[0] ?? "").trim();
+    if (!outcome) continue;
+    out[key] = [outcome, String(pair[1] ?? "").trim()];
+  }
+  return out;
+}
+
+/**
+ * Legacy chosen/rejected from the outcome map: chosen = the Install if there was one, else the
+ * most useful Read (first wins — the tool description tells the agent to list most-useful-first).
+ *
+ * Returns NULL when the map cannot be projected — no readable label at all. That state is
+ * deliberately DISTINCT from chosen:"None", which asserts "every candidate was genuinely
+ * rejected"; conflating them lets an unreadable map record a poisoned hard negative for a wish
+ * the catalog may well have answered. "None" is only emitted when every label read as a Reject.
+ */
+function deriveLegacy(map) {
+  const kinds = Object.entries(map).map(([id, [label]]) => [id, outcomeKind(label)]);
+  if (!kinds.length) return null;
+  const first = (kind) => (kinds.find(([, k]) => k === kind) || [null])[0];
+  const chosen = first("Install") || first("Read");
+  const rejected = kinds.filter(([, k]) => k === "Reject").map(([id]) => id);
+  if (chosen) return { chosen, rejected };
+  if (kinds.every(([, k]) => k === "Reject")) return { chosen: "None", rejected };
+  return null; // labels present but unreadable — say so rather than claim a total rejection
+}
+
 export const federation = {
   tenant: TENANT,
 
-  search(wish, keywords = [], topN = 6) {
+  // Callers always pass an explicit, clamped topN (findSkills.mjs owns the resolution
+  // order); this default only matters to direct callers and tracks the same D5 value.
+  search(wish, keywords = [], topN = 10) {
     return postJSON("/search", {
       tenant: TENANT,
       wish,
@@ -72,21 +153,59 @@ export const federation = {
     });
   },
 
-  fetch(skillId) {
-    return postJSON("/fetch", { tenant: TENANT, skill_id: skillId });
+  // `purpose` is "hint" (read it in context) or "install" (write it to disk). The
+  // endpoint ignores unknown fields today (verified 2026-07-31: purpose → 200), so we
+  // can start recording intent client-side before the service learns to store it.
+  fetch(skillId, purpose = "hint") {
+    return postJSON("/fetch", { tenant: TENANT, skill_id: skillId, purpose });
   },
 
-  // One wish's agentic-selection outcome. chosen = selected id, or the literal
-  // string "None" when every candidate was rejected (the endpoint requires a
-  // non-empty chosen). rejected = the other shown candidate ids.
-  reportSelection(queryId, chosen, rejected = []) {
-    const chosenVal = chosen && String(chosen).trim() ? chosen : "None";
-    return postJSON("/report_selection", {
+  // One wish's outcome, DUAL-WRITTEN. The truth is `outcomes` — every shown candidate
+  // mapped to [Install|Read|Reject, why] — because a Read is a hit and the old
+  // single-`chosen` shape could not say so. The endpoint still REQUIRES `chosen`
+  // (422 without it) and ignores unknown fields, so we derive the legacy pair from the
+  // map and send both: this works against today's server unchanged, and the richer map
+  // starts being recorded the moment the service stores it. No coordinated release.
+  //
+  // FAIL CLOSED, never fail wrong: if the map is unreadable (wrong type, unparseable string,
+  // empty, or labels we cannot interpret) and no explicit `chosen` overrides it, nothing is
+  // sent. Reporting is advisory — index.mjs turns the throw into {reported:false, note} — so a
+  // silent chosen:"None" would be strictly worse than not reporting: it teaches the flywheel
+  // that every candidate was wrong.
+  async reportSelection(queryId, { outcomes = null, chosen = null, rejected = null } = {}) {
+    const supplied = outcomes !== null && outcomes !== undefined;
+    const map = normOutcomes(outcomes);
+    const legacy = deriveLegacy(map);
+    const override = (chosen && String(chosen).trim()) || null;
+
+    if (!override && !legacy) {
+      throw new Error(
+        supplied
+          ? 'outcomes was empty or unreadable — expected {"<skill_id>": ["Install"|"Read"|' +
+            '"Reject", "<why>"]}; nothing was reported (pass `chosen` to override)'
+          : "report_selection needs an `outcomes` map (or an explicit `chosen`); nothing was reported"
+      );
+    }
+
+    const payload = {
       tenant: TENANT,
       query_id: queryId,
-      chosen: chosenVal,
-      rejected: rejected || [],
-    });
+      chosen: override || legacy.chosen,
+      rejected: Array.isArray(rejected) ? rejected : legacy ? legacy.rejected : [],
+    };
+    if (Object.keys(map).length) payload.outcomes = map;
+    const res = await postJSON("/report_selection", payload);
+    // Sent on the strength of an explicit `chosen`, with the map unusable: say so out loud
+    // rather than let the drop pass for a clean report.
+    if (supplied && !legacy) {
+      return {
+        ...res,
+        note: Object.keys(map).length
+          ? "outcomes carried no readable Install/Read/Reject label; chosen came from your override"
+          : "outcomes was empty or unreadable and was dropped; chosen came from your override",
+      };
+    }
+    return res;
   },
 
   // `wish` is REQUIRED (the searched wish string); `sketch` is an optional STRING

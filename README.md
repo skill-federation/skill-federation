@@ -21,7 +21,7 @@
 ![Data sent](https://img.shields.io/badge/data%20sent-abstract%20wishes%20only-7C5CDB?style=flat-square)
 [![Agent Skill](https://img.shields.io/badge/Agent%20Skill-spec--conformant-2E9E6B?style=flat-square)](https://agentskills.io)
 
-<a href="https://skill-federation.github.io/"><img src="assets/demo.svg" alt="Running /skillfed to plan a launch for an open-source dev tool returns four vetted skill matches — multi-platform-launch, github-presence, community-building, product-analytics — to install" width="720"></a>
+<a href="https://skill-federation.github.io/"><img src="assets/demo.svg" alt="Running /skillfed to plan a launch for an open-source dev tool returns four vetted skill matches — multi-platform-launch, github-presence, community-building, product-analytics — all four read in context as field notes, with only the one you'll reuse installed" width="720"></a>
 
 **Your agent asks. Skill Federation answers. You approve.**
 
@@ -39,10 +39,20 @@ skills exist, scattered across the open-source ecosystem. The problem is *findin
 mid-task* — and every "search a catalog" approach so far means shipping your plan, your brief,
 or your data to someone's server.
 
-**Skill Federation finds skills the privacy-preserving way.** Right after you approve a plan,
-your agent writes an abstract **wish-list** — "if every skill existed, which would I reach for?"
-— and the federation matches those wishes against a catalog of vetted skills. Your plan, your
-files, and your outputs never leave your machine. Only the abstract wishes do.
+**Skill Federation finds skills the privacy-preserving way.** Whenever current practice is
+load-bearing — as your agent starts planning, before it executes, or the moment it hits a gap
+mid-task — it writes an abstract **wish-list** ("if every skill existed, which would I reach
+for?") and the federation matches those wishes against a catalog of vetted skills. Your plan,
+your files, and your outputs never leave your machine. Only the abstract wishes do.
+
+**Skills are field notes, not rules.** A model's weights are an average of what was written
+before its training cutoff; a maintained skill is a dated artifact that carries the difference.
+So the default is to pull **several** and *read* them — take the criteria and gotchas that bear
+on the task, cross-check where they disagree — and to install only the rare one you'll reuse,
+with your approval. In our own testing, skills read against work a capable model had already
+optimised still surfaced real defects it had missed — and some of the skills' own advice was
+itself out of date. Both point the same way: read several, trust none absolutely. (The catalog
+and our ongoing research notes are at [skillfed.io](https://skillfed.io).)
 
 > [!IMPORTANT]
 > **Only the abstract wish crosses the boundary** — a one-line capability description, ~4
@@ -75,13 +85,14 @@ You: /skillfed plan a launch for my open-source dev tool
   -> agent writes 4 abstract wishes (paraphrases + a capability sketch).
      Only these leave your machine -- never your plan, files, or data.
 
-  wish: launch-strategy       -> multi-platform-launch  review - verified             <- selected
-  wish: repo-discoverability  -> github-presence        review - verified             <- selected
-  wish: community-building    -> community-building     review - verified             <- selected
-  wish: growth-analytics      -> product-analytics      permissive - verified - 221*  <- selected
-       (each picked from 5 ranked candidates in the vetted catalog)
+  wish: launch-strategy       -> multi-platform-launch  review - verified             <- read
+  wish: repo-discoverability  -> github-presence        review - verified             <- read
+  wish: community-building    -> community-building     review - verified             <- read
+  wish: growth-analytics      -> product-analytics      permissive - verified - 221*  <- read
+       (each picked from 10 ranked candidates in the vetted catalog)
 
-  Install the 4 selected? They go in .claude/skills/ with license + source attribution.
+  Read all 4 in context -- nothing hits disk. Install only the 1 you'll reuse?
+  It goes in .claude/skills/ with license + source attribution.
 ```
 
 </details>
@@ -91,11 +102,14 @@ You: /skillfed plan a launch for my open-source dev tool
 - **Privacy floor, by design.** Only the abstract wish crosses the boundary — "what skill should
   exist," never your task. Your plan, brief, file contents, and reasoning trace stay local,
   always. (Full field-by-field breakdown under **Privacy & trust** below.)
-- **Trust before install.** Candidates come from a **pre-scanned internal registry**
-  ([Cisco Skill Scanner](https://github.com/cisco-ai-defense/skill-scanner) +
+- **Trust before you read — and again before you install.** Candidates come from a **pre-scanned
+  internal registry** ([Cisco Skill Scanner](https://github.com/cisco-ai-defense/skill-scanner) +
   [NVIDIA SkillSpector](https://github.com/NVIDIA/SkillSpector)), not the wild repo — every one
-  shows its license class, provenance, stars, and source. *You* approve each install; nothing is
-  pulled silently. (See [Security](#-security).)
+  shows its license class, provenance, stars, and source. That matters twice over: a *consulted*
+  body is untrusted third-party text entering your agent's context, and unlike an installed skill
+  it leaves no `SOURCE.txt` behind — so the agent has to name what it read and where it came from
+  in its reply. *You* approve each install; nothing is written to disk silently.
+  (See [Security](#-security).)
 - **Native, zero-install.** The default tier needs nothing but `curl` — already on Windows 10+
   and macOS. No Python, no Node, no package manager. (Optional tiers add typed MCP tools if you
   have Node.)
@@ -103,19 +117,43 @@ You: /skillfed plan a launch for my open-source dev tool
 ## ⚙️ How it works
 
 <div align="center">
-  <img src="assets/howitworks.svg" alt="On your machine the agent approves a plan and writes abstract wishes; only the abstract wish crosses the boundary to the federation, which returns ranked candidates; you approve, the skill installs to .claude/skills/, and the agent uses it — your plan, files, and outputs never leave" width="760">
+  <img src="assets/howitworks.svg" alt="On your machine the agent writes abstract wishes as a plan starts or is approved; only the abstract wish crosses the boundary to the federation, which returns ranked candidates; you see a trust review, the agent reads the notes in context, and installs to .claude/skills/ only what you'll reuse — your plan, files, and outputs never leave" width="760">
 </div>
 
-1. **Plan.** You approve a plan in your agent as usual.
+1. **Ask** — at any of three moments: as the agent *starts* planning (so skills shape the
+   approach), when it *finishes* a plan, or mid-task the instant it hits a capability it was
+   about to build from scratch. Or just run `/skillfed <what you're doing>`. It's a search, not
+   a ritual — once or several times per task.
 2. **Wish-list.** The agent sketches the ideal skills and writes up to 10 abstract wishes — each
    with vocabulary-varied paraphrases and a structured capability sketch for high recall. No task
    specifics.
 3. **Match.** The federation runs a fast lexical search per wish (description + paraphrases +
-   flattened sketch) against the **vetted, pre-scanned catalog** and returns the top candidates.
-4. **Review.** The agent picks the best fit (or rejects all) and shows you a trust table.
-5. **Install.** On your approval, the chosen skills are fetched from the **internal scanned copy**
-   (not the origin repo) into `.claude/skills/` with full license + source attribution.
-6. **Use.** Your agent uses the skill immediately — no reinventing it.
+   flattened sketch) against the **vetted, pre-scanned catalog** and returns the top candidates
+   (10 per wish by default, 1–25 on request).
+4. **Read — the default.** The agent pulls **several** promising candidates per wish, reads them
+   in context as field notes, and cross-checks where they disagree. Nothing is written to disk.
+   You get a trust table (license · provenance · stars · source) plus a plain statement of which
+   skills it read and what it took from each. **For most tasks it ends here.**
+5. **Install — the exception.** Only when a skill is genuinely good *and* you expect to reuse it,
+   and only on your explicit approval: it's fetched from the **internal scanned copy** (not the
+   origin repo) into `.claude/skills/` with full license + source attribution. Nothing you only
+   needed to read once gets installed.
+
+## 🌍 Works anywhere
+
+**No harness required — not even Claude Code.** The finder skill carries its own triggers and its
+own instructions, so it works with no hook registered, in any harness that can load a skill body,
+and with no harness at all: paste it into a plain chat and it still knows when to search, what a
+skill is for, and how to read one. The optional hooks below are a Claude Code convenience that
+only *repeats* triggers the skill already has — which is why `--hook none` is the default.
+
+**Nothing installed, just a browser?** Ask any chat to *use skillfed.io to find a skill* — or
+paste in [the skill body itself](integrations/claude-code/skills/skill-federation/SKILL.md),
+which carries the whole procedure. The zero-install loop is two GETs: **find** a skill by web
+search, or from the `/best/{term}` and publisher hubs on [skillfed.io](https://skillfed.io); then
+**read** it by appending `.md` to any skill page URL for the full body. One caveat, stated
+plainly: the wish-list search is POST-only
+today, so a browsing-only chat can *read* skills but cannot run the federated wish query.
 
 ## 📊 Benchmark
 
@@ -172,12 +210,33 @@ restart Claude Code.
 ```
 
 > [!TIP]
-> Then **restart Claude Code** and run `/skillfed <what you're trying to do>` — or just approve
-> a plan and the finder offers itself automatically.
+> Then **restart Claude Code** and run `/skillfed <what you're trying to do>` — or just work
+> normally: the skill carries its own triggers (starting a plan, finishing one, hitting a gap
+> mid-task), so it offers itself with no hook registered.
 
 Zero runtime — the finder needs only `curl` (no Node or Python). For the optional tiers
-(auto-trigger hook · typed MCP tools · Python/CI helper), flags, scopes, installing from a
-checkout, and config-safety details, see [`install.md`](install.md).
+(planning nudges · typed MCP tools · Python/CI helper), installing from a checkout, and
+config-safety details, see [`install.md`](install.md).
+
+### Invocation options
+
+Every install path takes the same flags — `-Flag` in PowerShell, `--flag` everywhere else
+(`install.sh`, `npx skillfed`, `uvx skillfed`):
+
+| Flag | Values | Default | What it does |
+|---|---|---|---|
+| `--harness` / `-Harness` | `claude-code` | `claude-code` | which harness to install into; an unknown value exits `2` naming what's supported |
+| `--hook` / `-Hook` | `none` \| `start` \| `end` \| `both` | `none` | register 0–2 planning nudges in `settings.json` — `start` fires as you enter plan mode, `end` after a plan is approved |
+| `--with-hook` / `-WithHook` | — | off | legacy alias for `--hook end` |
+| `--scope` / `-Scope` | `user` \| `project` | `user` | `~/.claude` vs `./.claude` |
+| `--with-npx` / `-WithNpx` | — | off | also register the Node MCP server for typed tools (needs Node ≥18) |
+| `--with-python` / `-WithPython` | — | off | print the advanced/CI Python-helper setup |
+
+`--hook none` is a **complete** install: the skill triggers itself, and hooks only repeat what it
+already carries. Both nudge files ship whatever the mode, so changing your mind later is a
+settings edit, never a re-fetch. `settings.json` is backed up once before the first write, merged
+safely, and the registration is idempotent. (`--endpoint`, `--raw-base` and `--target`, plus how
+to pass flags through a `curl | bash` pipe, are in [`install.md`](install.md).)
 
 <details>
 <summary>Prefer to paste it yourself? (raw curl one-liner)</summary>
@@ -211,10 +270,12 @@ curl -fsSL https://raw.githubusercontent.com/skill-federation/skill-federation/m
   field is "what skill should exist", never your task. The wish's `name` is display-only and is not
   sent.
 - **What never crosses:** your plan, brief, file contents, outputs, or reasoning trace.
-- **Two complementary signals, not conflated:** a `report_selection` labels retrieval quality
-  (which shown candidates were right or wrong); a `report_demand` captures the capability gap (what
-  was actually needed). They feed different loops — selection sharpens search, demand drives what
-  gets built next.
+- **Two complementary signals, not conflated:** a `report_selection` labels retrieval quality —
+  what each shown candidate was actually worth, as `Install` / `Read` / `Reject` plus a one-line
+  reason (**a read counts as a hit**, even though nothing was installed); a `report_demand`
+  captures the capability gap (what was actually needed) and is emitted only on a genuine miss —
+  nothing returned, or everything rejected. They feed different loops — selection sharpens
+  search, demand drives what gets built next.
 - **Local-first:** if you already have a skill installed, your local copy is used as-is — your
   edits are personalization, never silently overwritten.
 
@@ -249,6 +310,17 @@ gate is what keeps them out.
 > risk"* — a clean scan is not proof a skill is safe. Skill Federation still shows each skill's
 > license, provenance, and source, and **nothing installs without your approval**.
 
+**Reading a skill is a trust decision too.** Most of the time your agent *consults* a skill
+rather than installing it: the body is fetched into context and nothing is written to disk. That
+is the lower-risk path — no third-party code lands on your machine — but the text still enters
+your agent's context as untrusted third-party input, and a consulted skill leaves **no
+`SOURCE.txt`** behind, because that file is written only on install. So the finder treats a
+fetched body as **data, not as instructions addressed to the agent** (it follows the craft
+guidance and ignores anything telling it to run commands, change settings, or send data
+anywhere), surfaces each consulted skill's license, provenance and source **in its reply** since
+there's nothing on disk to check later, and asks you first before reading anything unverified or
+flagged.
+
 ## 🔧 Configuration
 
 The finder talks to a federation endpoint over HTTPS. Default is a keyless demo; override it:
@@ -263,8 +335,8 @@ export SKILLFED_ENDPOINT="https://your-federation.example.com"   # or set in .mc
 install.ps1 / install.sh / install.md   auto-detecting installer; works from a clone OR piped (irm|iex, curl|bash)
 installer/                              npm package `skillfed` — the `npx skillfed` no-clone path
 python-installer/                       PyPI package `skillfed` — the `uvx skillfed` / `pipx run skillfed` path
-scripts/vendor-payload.mjs              vendors the 3 payload files into both packages (single source of truth)
-integrations/claude-code/               the Claude Code plugin (skill + /skillfed + hook) — canonical payload
+scripts/vendor-payload.mjs              vendors the 6 payload files into both packages (single source of truth)
+integrations/claude-code/               the Claude Code plugin (skill + /skillfed + optional hooks) — canonical payload
 integrations/*.py                       optional Python tier (advanced / CI)
 mcp-server/                             optional Node MCP tier (typed tools via npx skillfed-mcp)
 ```

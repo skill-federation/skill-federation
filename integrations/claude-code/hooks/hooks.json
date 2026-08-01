@@ -1,6 +1,17 @@
 {
-  "description": "Skill Federation — searches a federated catalog of vetted agent skills when you approve a plan, and on demand. Backend is remote; this only forwards the task and shows ranked candidates.",
+  "description": "Skill Federation — consult the current state of practice before doing expert work: search a federated catalog of vetted agent skills, read the ones that matter as field notes, and install only what you'll reuse. These two nudges are an optional convenience that only repeat triggers the skill already carries; it works identically with neither. The backend is remote and only ever receives abstract wish-lists — never your plan, brief, or files.",
   "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/start_nudge.sh\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
     "PostToolUse": [
       {
         "matcher": "ExitPlanMode",

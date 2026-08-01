@@ -8,7 +8,7 @@
       "name": "skill-federation",
       "source": "./integrations/claude-code",
       "description": "Finds vetted agent skills for your task, mid-flow, from a federated catalog — with license/provenance trust metadata. Privacy-preserving: the search backend stays remote and only an abstract wish-list crosses the boundary.",
-      "version": "0.1.2"
+      "version": "0.2.0"
     }
   ]
 }

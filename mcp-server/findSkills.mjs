@@ -29,7 +29,34 @@
 import { federation, ENDPOINT } from "./federation.mjs";
 import { installedSkillNames, filterCandidates } from "./localSkills.mjs";
 
-const TOP_N = parseInt(process.env.SKILLFED_TOP_N || "5", 10); // candidates per wish
+// The remote validates top_n and 422s the WHOLE search outside [1,25] — it does not
+// silently cap (probed 2026-07-31). The service is not in this repo, so treat these as
+// measured, not contractual, and re-probe if searches start 422-ing. Clamping here rather
+// than retrying on 422 is deliberate: a retry would paper over a contract change we want
+// to see. An unclamped SKILLFED_TOP_N=50 used to break every search.
+const REMOTE_TOP_N_MIN = 1;
+const REMOTE_TOP_N_MAX = 25;
+const TOP_N_FALLBACK = 10; // raised from 5: at 5 the cut was excluding genuinely relevant skills
+
+/**
+ * Coerce anything (env string, JSON number, junk) into a wire-legal top_n.
+ *
+ * Only a number or a non-blank numeric string is a value; everything else (null, [], true, "",
+ * {}) is junk and takes `fallback`. Number([]) and Number(false) are both 0, which would
+ * otherwise clamp to 1 — a search for a single candidate, silently, from a type error.
+ * `fallback` is a parameter so the caller can say what "not a value" resolves to: the env
+ * default falls back to the literal 10, a junk PER-CALL value falls back to the env default,
+ * which is the documented resolution order.
+ */
+export function clampTopN(n, fallback = TOP_N_FALLBACK) {
+  const v = typeof n === "number" ? n : typeof n === "string" && n.trim() ? Number(n) : NaN;
+  if (!Number.isFinite(v)) return fallback;
+  return Math.min(REMOTE_TOP_N_MAX, Math.max(REMOTE_TOP_N_MIN, Math.trunc(v)));
+}
+
+// Resolution order: per-call top_n → SKILLFED_TOP_N → 10, each clamped to [1,25]. Enforced in
+// findSkills() below, which passes TOP_N_DEFAULT as the per-call fallback.
+const TOP_N_DEFAULT = clampTopN(process.env.SKILLFED_TOP_N); // candidates per wish
 const K = parseInt(process.env.SKILLFED_K || "4", 10); // paraphrase formulations per query
 
 class InvalidWishlist extends Error {
@@ -40,8 +67,10 @@ class InvalidWishlist extends Error {
   }
 }
 
-/** Validate + canonicalize the wish-list (mirrors search_wishlist.py _load_wishlist). */
-function validateWishlist(input) {
+/** Validate + canonicalize the wish-list (mirrors search_wishlist.py _load_wishlist).
+ * Exported for tests: it is the whole input contract, and asserting on it directly beats
+ * inferring it from a search response. */
+export function validateWishlist(input) {
   // Accept either a bare array or { wishlist: [...] }.
   const wishlist = Array.isArray(input) ? input : input && input.wishlist;
   if (!Array.isArray(wishlist) || wishlist.length < 1 || wishlist.length > 10) {
@@ -136,7 +165,7 @@ function normalize(c) {
 }
 
 /** Run one wish's search; never throws — transport errors become `error`. */
-async function searchOne(wish, installed) {
+async function searchOne(wish, installed, topN) {
   const out = {
     wish,
     query_id: null,
@@ -160,7 +189,7 @@ async function searchOne(wish, installed) {
 
   let res;
   try {
-    res = await federation.search(queryText, wish.keywords, TOP_N);
+    res = await federation.search(queryText, wish.keywords, topN);
   } catch (e) {
     out.error = `${e.name || "Error"}: ${e.message}`;
     return out;
@@ -171,10 +200,16 @@ async function searchOne(wish, installed) {
   out.empty = raw.length === 0; // empty retrieval → demand pointer (so can all-rejected, later)
   const norm = raw.map(normalize);
   const [newOnes, have] = filterCandidates(norm, installed);
-  out.candidates = newOnes.slice(0, TOP_N);
+  out.candidates = newOnes.slice(0, topN);
   out.already_installed = have.map((h) => h.name);
-  // adapter extras qurini provides (not in spec; aid the agent's selection)
-  for (const extra of ["confidence", "recommendation"]) {
+  // adapter extras qurini provides (not in spec; aid the agent's selection).
+  //
+  // `recommendation` is deliberately NOT forwarded. The service still returns a string reading
+  // "present the top 2-3 … then skillfed_fetch the chosen skill_id" — old single-pick,
+  // install-first guidance, arriving from the server and contradicting everything the skill
+  // body says about reading several. Passing it through would let it override the prompt
+  // surface at runtime. Restore it once the service text is fixed (Track S item 3).
+  for (const extra of ["confidence"]) {
     if (extra in res) out[extra] = res[extra];
   }
   return out;
@@ -184,9 +219,17 @@ async function searchOne(wish, installed) {
  * Search a whole wish-list. Returns the same object shape as
  * search_wishlist.py's stdout. Throws InvalidWishlist (code INVALID_WISHLIST)
  * on a bad input shape.
+ *
+ * `input` is either a bare wish array or {wishlist, top_n}. The resolved top_n is
+ * echoed back, so the agent can see what it actually got when it asked for 99.
  */
 export async function findSkills(input) {
   const wishlist = validateWishlist(input);
+  // per-call top_n → SKILLFED_TOP_N → 10. A junk per-call value falls back to the env default
+  // (not straight to 10), which is what the resolution order above claims.
+  const requested =
+    input && !Array.isArray(input) && input.top_n !== undefined ? input.top_n : undefined;
+  const topN = requested === undefined ? TOP_N_DEFAULT : clampTopN(requested, TOP_N_DEFAULT);
 
   let installed;
   try {
@@ -195,15 +238,15 @@ export async function findSkills(input) {
     installed = new Set();
   }
 
-  const results = await Promise.all(wishlist.map((w) => searchOne(w, installed)));
+  const results = await Promise.all(wishlist.map((w) => searchOne(w, installed, topN)));
 
   return {
     endpoint_mode: ENDPOINT ? "hosted" : "local",
-    top_n: TOP_N,
+    top_n: topN,
     paraphrases_k: K,
     n_wishes: wishlist.length,
     results,
   };
 }
 
-export { InvalidWishlist };
+export { InvalidWishlist, REMOTE_TOP_N_MIN, REMOTE_TOP_N_MAX, TOP_N_DEFAULT };

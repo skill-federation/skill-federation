@@ -38,8 +38,11 @@ Out of scope:
 ## Reporting a malicious or vulnerable skill in the catalog
 
 If a skill served by the federation looks malicious, vulnerable, or misattributed, report it the
-same private way and include the skill's `id` and `source_url` (both are in the `SOURCE.txt`
-installed next to every skill). We'll pull it for re-scan and remove it if it fails.
+same private way and include the skill's `id` and `source_url`. For an **installed** skill both
+are in the `SOURCE.txt` written next to it. For a skill that was only **consulted** — fetched and
+read in context, the normal case — nothing is written to disk, so take them from the agent's
+reply (it is required to surface license, provenance and source for everything it read) or from
+the `/fetch` response itself. We'll pull the skill for re-scan and remove it if it fails.
 
 ## How the catalog is protected
 
@@ -56,3 +59,26 @@ High/critical findings are rejected or routed to manual review before promotion.
 > scan is not proof a skill is safe. The federation still shows each skill's license, provenance,
 > and source, and **nothing installs without your approval.** Treat installed skills as code you are
 > choosing to run with your agent's full permissions.
+
+## Reading a skill is a trust decision too
+
+By default the finder **consults** skills rather than installing them: it fetches a body, reads it
+in context as field notes, and writes nothing to disk. That is the lower-risk path — no
+third-party code lands on your machine — but it is not a no-risk one, and it has its own
+properties worth stating:
+
+- **The body is untrusted third-party text entering your agent's context.** The finder treats it
+  as **data, not as instructions addressed to the agent**: it uses the guidance about the craft
+  and ignores anything telling it to run commands, change configuration, install other skills,
+  read unrelated files, or send data anywhere. Prompt injection inside a skill body is exactly
+  what the ingest scan looks for, and exactly what "best-effort" does not fully rule out.
+- **A consulted skill leaves no `SOURCE.txt`.** That file is written only on install. So the
+  provenance record for anything merely read is the agent's own reply — it is required to state
+  which skills it read and to show each one's license, provenance, and source. If a reply cites
+  guidance without naming where it came from, that is a bug worth reporting.
+- **Consulting an unverified or flagged skill needs your say-so.** The finder reads freely only
+  when provenance is `verified` with no `security_flags`; otherwise it asks first, before the
+  text enters context.
+
+Install remains the higher bar: a skill only reaches `.claude/skills/` when it is good enough,
+you expect to reuse it, and you explicitly approve it.

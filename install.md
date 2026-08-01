@@ -24,15 +24,15 @@ uvx skillfed            # or:  pipx run skillfed
 
 ```powershell
 # PowerShell: turn the fetched text into a scriptblock you can pass params to
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/skill-federation/skill-federation/main/install.ps1))) -WithHook -Scope project
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/skill-federation/skill-federation/main/install.ps1))) -Hook end -Scope project
 ```
 ```bash
 # bash: forward args after `-s --`
-curl -fsSL https://raw.githubusercontent.com/skill-federation/skill-federation/main/install.sh | bash -s -- --with-hook --scope project
+curl -fsSL https://raw.githubusercontent.com/skill-federation/skill-federation/main/install.sh | bash -s -- --hook end --scope project
 ```
 ```bash
-npx skillfed --with-hook --scope project
-uvx skillfed --with-hook --scope project
+npx skillfed --hook end --scope project
+uvx skillfed --hook end --scope project
 ```
 
 > [!NOTE]
@@ -55,14 +55,15 @@ chmod +x install.sh && ./install.sh
 The same scripts power the one-liners above: from a clone they copy the payload locally; piped
 from the network they fetch it from raw GitHub (override the source with `-RawBase` / `--raw-base`).
 
-Then **restart Claude Code** and run `/skillfed <what you're trying to do>`.
+Then **restart Claude Code** and run `/skillfed <what you're trying to do>` — or just work
+normally and let the skill offer itself.
 
 ## What it installs
 
 | Tier | Needs | Installed by | Gets you |
 |---|---|---|---|
 | **curl** (default, always) | nothing — `curl` ships with Win10+/macOS | every run | the finder skill + `/skillfed` command, runtime-free |
-| **hook** | nothing | `--with-hook` / `-WithHook` | auto-nudge to run the finder right after a plan is approved |
+| **hooks** (optional) | nothing | `--hook start\|end\|both` / `-Hook` | 0–2 planning nudges — `start` as you enter plan mode, `end` after a plan is approved |
 | **npx** (Node MCP) | Node ≥18 | `--with-npx` / `-WithNpx` | Claude calls typed `find_skills`/… tools instead of shelling out |
 | **python** | a Python interpreter | `--with-python` / `-WithPython` | prints the advanced/CI env-var setup |
 
@@ -70,28 +71,51 @@ The installer prints what it detected (`curl` / `node` / `python`) and installs 
 unconditionally** — it's the only one that needs no runtime and works on the standalone Claude
 Code desktop build *and* the npm CLI. The other tiers are opt-in flags.
 
+**Hooks are optional, and `none` is the default.** The finder skill carries its own triggers in
+its own body — it offers itself when you start a plan, finish one, or hit a capability gap
+mid-task — so a hook only *repeats* a trigger the skill already has. That is also why the skill
+works in any harness, or with no harness at all. Both nudge files and the gate script are copied
+on **every** install whatever the mode, so switching `--hook` later is a `settings.json` edit,
+never a re-fetch.
+
 ## Options
 
 ```
--Scope  user|project   (PS)   |   --scope user|project   (sh)    # ~/.claude (default) vs ./.claude
+-Harness <name>        (PS)   |   --harness <name>        (sh)    # default & only value today: claude-code
+-Hook none|start|end|both (PS)|   --hook none|start|end|both (sh) # register 0-2 nudges (default: none)
+-WithHook              (PS)   |   --with-hook             (sh)    # legacy alias for -Hook end
+-Scope  user|project   (PS)   |   --scope user|project    (sh)    # ~/.claude (default) vs ./.claude
 -Endpoint <url>        (PS)   |   --endpoint <url>        (sh)    # default: qurini keyless demo
 -RawBase <url>         (PS)   |   --raw-base <url>        (sh)    # no-clone fetch source (default: raw GitHub main)
--WithHook / -WithNpx / -WithPython     |     --with-hook / --with-npx / --with-python
+-WithNpx / -WithPython        |   --with-npx / --with-python
 ```
+
+`--harness` names the harness to install into; `claude-code` is the default and, today, the only
+accepted value — anything else exits `2` listing what is supported. `--hook` is only valid for a
+harness that has a hook mechanism at all, and is rejected with a clear message otherwise.
+Resolution order is: an explicit `--hook` wins, then the legacy `--with-hook` switch, then `none`.
+The installer prints the resolved harness and hook mode before it writes anything.
 
 Examples:
 ```powershell
-.\install.ps1 -WithHook                       # curl + auto-trigger
+.\install.ps1                                  # curl tier, no hooks — a complete install
+.\install.ps1 -Hook end                        # + the end-of-plan nudge
+.\install.ps1 -Hook both                       # + the start-of-plan nudge as well
 .\install.ps1 -WithNpx                         # curl + Node MCP tools (if node present)
 .\install.ps1 -Scope project -Endpoint https://my-federation.example.com
 ```
 
 ## What it writes (and safety)
 
-- `~/.claude/skills/skill-federation/SKILL.md` + `plan_nudge.json`, and
-  `~/.claude/commands/skillfed.md` — plain file copies, no config surgery.
-- `--with-hook`: merges one entry into `~/.claude/settings.json` (or project) — **backs up to
-  `settings.json.bak` first**, preserves your existing keys/hooks, and is idempotent.
+- `~/.claude/skills/skill-federation/` — `SKILL.md`, `demand-sketch.md`, and the three hook
+  assets (`plan_nudge.json`, `plan_start_nudge.json`, `start_nudge.sh`) — plus
+  `~/.claude/commands/skillfed.md`. Plain file copies, no config surgery. **All six land on every
+  run**, whatever `--hook` says; the nudge files are inert until one is registered.
+- `--hook`: merges **0–2** entries into `~/.claude/settings.json` (or project) — `end` adds a
+  `PostToolUse`/`ExitPlanMode` entry, `start` adds a `UserPromptSubmit` entry that self-gates on
+  plan mode via `start_nudge.sh`. It **backs up to `settings.json.bak` once** before the first
+  write, preserves your existing keys/hooks, and each entry is idempotency-checked against its own
+  filename, so re-running never double-registers.
 - `--with-npx`: writes/merges `./.mcp.json` (project-scoped) — also backed up. Requires Node. The
   form depends on how you ran the installer: **from a clone** it registers the local
   `mcp-server/` (run `npm install` in it once); **no-clone / piped** (and the `npx skillfed`
@@ -107,6 +131,6 @@ fallback if absent). The **runtime** path only ever needs `curl`.
 # the finder's search call, by hand (curl.exe on Windows):
 curl -s -X POST "https://qurini-skill-federation.hf.space/search" \
   -H "Content-Type: application/json" \
-  --data-binary '{"tenant":"local","wish":"extract tables from PDF documents","keywords":["pdf","table-extraction","parsing"],"top_n":5}'
+  --data-binary '{"tenant":"local","wish":"extract tables from PDF documents","keywords":["pdf","table-extraction","parsing"],"top_n":10}'
 ```
 A JSON payload with ranked `candidates` means you're wired up. Then just use `/skillfed`.

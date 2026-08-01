@@ -1,6 +1,6 @@
 {
   "name": "skillfed-mcp",
-  "version": "0.1.3",
+  "version": "0.2.0",
   "mcpName": "io.github.skill-federation/skillfed-mcp",
   "description": "Find vetted agent skills for your task — Skill Federation finder as a Node MCP server. Zero-install via npx; exposes find_skills / get_skill_bundle tools to Claude and any MCP client. Python-free.",
   "type": "module",
@@ -10,6 +10,7 @@
   "main": "index.mjs",
   "files": [
     "index.mjs",
+    "tools.mjs",
     "federation.mjs",
     "findSkills.mjs",
     "localSkills.mjs"
@@ -18,7 +19,8 @@
     "node": ">=18"
   },
   "scripts": {
-    "start": "node index.mjs"
+    "start": "node index.mjs",
+    "test": "node --test"
   },
   "keywords": [
     "skill-federation",

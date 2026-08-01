@@ -82,7 +82,7 @@ clean, and only added once the file exists so nothing renders broken:
 <details>
 <summary>▶ Watch a real ~25s run</summary>
 
-<img src="assets/demo.gif" alt="A real /skillfed run: the agent writes abstract wishes, the federation returns ranked vetted matches with license and trust metadata, and the chosen skills install to .claude/skills after approval" width="720">
+<img src="assets/demo.gif" alt="A real /skillfed run: the agent writes abstract wishes, the federation returns ranked vetted matches with license and trust metadata, the agent reads several of them in context, and only a skill worth reusing is installed to .claude/skills after approval" width="720">
 
 </details>
 ```

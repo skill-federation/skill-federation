@@ -11,8 +11,9 @@ this is the seam the alignment work preserves.
 ADAPTER NOTE (qurini endpoints ↔ our five MCP tools, contracts/federation-mcp-tools.md):
   /search          ↔ find_skills        (qurini is per-wish; batching is emulated
                                           in search_wishlist.py — one async call/wish)
-  /fetch           ↔ get_skill_bundle
-  /report_selection↔ report_selection   (per-wish here: chosen + rejected ids)
+  /fetch           ↔ get_skill_bundle   (carries `purpose`: hint = read, install = write)
+  /report_selection↔ report_selection   (per-wish outcome map {skill_id: [Install|Read|Reject,
+                                          why]}, dual-written with the legacy chosen/rejected)
   /report_demand   ↔ emit_demand_pointer (carries the structured sketch)
   (no analogue)    ↔ submit_suggestion   (reflection loop — out of this first pass)
 
@@ -41,6 +42,81 @@ ENDPOINT = os.environ.get("SKILLFED_ENDPOINT", "").rstrip("/")
 API_KEY = os.environ.get("SKILLFED_API_KEY", "")
 TENANT = (os.environ.get("SKILLFED_TENANT")
           or os.environ.get("USER") or os.environ.get("USERNAME") or "local")
+
+OUTCOMES = ("Install", "Read", "Reject")
+
+# Near-misses we can still READ, for the legacy projection only (mirrors the table in
+# mcp-server/federation.mjs). The map keeps whatever word the agent used; this only decides
+# whether that word meant "used it" or "dismissed it", so "Used"/"read it"/"Consulted" cannot
+# collapse into chosen="None" — which would record the exact opposite of what happened.
+_OUTCOME_SYNONYMS = (
+    (("install", "adopt", "save", "kept", "keep"), "Install"),
+    (("read", "use", "used", "useful", "consult", "referenc", "applied", "help", "hit"), "Read"),
+    (("reject", "dismiss", "discard", "skip", "ignor", "irrelevant", "unused", "not used",
+      "no", "none"), "Reject"),
+)
+
+
+def _outcome_kind(label):
+    """What an outcome LABEL means for the legacy pair — Install|Read|Reject, or None."""
+    s = str(label or "").strip().lower()
+    if not s:
+        return None
+    for canon in OUTCOMES:
+        if s == canon.lower():
+            return canon
+    for prefixes, kind in _OUTCOME_SYNONYMS:
+        if s.startswith(prefixes):
+            return kind
+    return None
+
+
+def _norm_outcomes(raw) -> dict:
+    """Coerce the reported map into {skill_id: [outcome, why]}; {} when it is not one.
+
+    A JSON *string* is parsed before giving up: serializing this field as a string is an
+    expected mistake, because the sibling `sketch` field genuinely IS a string. An
+    unrecognized outcome WORD is kept verbatim — it is still a label worth recording.
+    """
+    if isinstance(raw, str):
+        try:
+            raw = json.loads(raw)
+        except ValueError:
+            return {}
+    if not isinstance(raw, dict):
+        return {}
+    out: dict = {}
+    for k, v in raw.items():
+        key = str(k).strip()
+        if not key:
+            continue
+        pair = list(v) if isinstance(v, (list, tuple)) else [v]
+        head = str(pair[0]).strip() if pair and pair[0] is not None else ""
+        outcome = next((c for c in OUTCOMES if head.lower() == c.lower()), head)
+        if not outcome:
+            continue
+        why = pair[1] if len(pair) > 1 and pair[1] is not None else ""
+        out[key] = [outcome, str(why).strip()]
+    return out
+
+
+def _derive_legacy(omap: dict):
+    """Legacy chosen/rejected from the outcome map, or None when it cannot be projected.
+
+    None is deliberately DISTINCT from chosen="None": the latter asserts that every candidate
+    was genuinely rejected. "None" is emitted only when every label read as a Reject.
+    """
+    kinds = [(sid, _outcome_kind(val[0])) for sid, val in omap.items()]
+    if not kinds:
+        return None
+    rejected = [sid for sid, k in kinds if k == "Reject"]
+    for want in ("Install", "Read"):
+        for sid, k in kinds:
+            if k == want:
+                return {"chosen": sid, "rejected": rejected}
+    if all(k == "Reject" for _, k in kinds):
+        return {"chosen": "None", "rejected": rejected}
+    return None
 
 
 class SkillfedClient:
@@ -77,31 +153,58 @@ class SkillfedClient:
             return json.loads(r.read())
 
     # ── public API (same shape regardless of backend) ──
-    def search(self, wish: str, keywords=None, top_n: int = 6) -> dict:
+    # Callers normally pass an explicit, clamped top_n (search_wishlist.py owns the resolution
+    # order); this default only matters to direct callers and tracks the same D5 value as
+    # mcp-server/. The remote 422s the WHOLE search outside 1–25 — never send 0 or 50.
+    def search(self, wish: str, keywords=None, top_n: int = 10) -> dict:
         if self.endpoint:
             return self._http("/search", {"tenant": TENANT, "wish": wish,
                                           "keywords": keywords or [], "top_n": top_n})
         return self._local_fed().search(TENANT, wish, keywords=keywords, top_n=top_n)
 
-    def fetch(self, skill_id: str) -> dict:
+    def fetch(self, skill_id: str, purpose: str = "hint") -> dict:
+        """Fetch a skill body. `purpose` is "hint" (read it in context — the default, and what
+        writes nothing) or "install" (the user has approved writing it to disk). The endpoint
+        ignores unknown fields today (verified 2026-07-31: purpose → 200), so intent is
+        recorded client-side before the service learns to store it."""
         if self.endpoint:
-            return self._http("/fetch", {"tenant": TENANT, "skill_id": skill_id})
+            return self._http("/fetch", {"tenant": TENANT, "skill_id": skill_id,
+                                         "purpose": purpose})
         return self._local_fed().fetch(TENANT, skill_id)
-    def report_selection(self, query_id, chosen, rejected=None) -> dict:
-        """Label-flywheel report for ONE wish's agentic selection.
 
-        chosen = the selected skill id, or the literal string "None" when every
-        candidate was rejected. The endpoint requires a non-empty `chosen`, so we
-        coerce a missing/empty value to the "None" sentinel (never null/empty).
-        rejected = the other shown candidate ids (hard negatives). Per-wish: the
-        qurini adapter issues one /search (one query_id) per wish.
+    def report_selection(self, query_id, chosen=None, rejected=None, outcomes=None) -> dict:
+        """Label-flywheel report for ONE wish, DUAL-WRITTEN (mirrors mcp-server/federation.mjs).
+
+        The truth is `outcomes`: every shown candidate mapped to
+        ``{skill_id: [Install|Read|Reject, "<why>"]}``. **A Read is a hit** — the old
+        single-`chosen` shape could not say so. The endpoint still REQUIRES a non-empty
+        `chosen` (422 without it) and ignores unknown fields, so both are sent: the legacy
+        pair is derived from the map unless passed explicitly.
+
+        FAIL CLOSED: if the map cannot be read and no explicit `chosen` overrides it, raise
+        rather than send chosen="None" — that sentinel means "every candidate was genuinely
+        rejected", and recording it for an unreadable map poisons the flywheel with a hard
+        negative for a wish the catalog may have answered. Reporting is advisory: callers
+        catch this and carry on; a failed report is never a task error.
         """
-        chosen = chosen if (chosen and str(chosen).strip()) else "None"
+        omap = _norm_outcomes(outcomes)
+        legacy = _derive_legacy(omap)
+        override = chosen if (chosen and str(chosen).strip()) else None
+        if not override and not legacy:
+            raise ValueError(
+                'report_selection needs a readable outcomes map '
+                '{"<skill_id>": ["Install"|"Read"|"Reject", "<why>"]} or an explicit chosen'
+            )
+        payload = {"tenant": TENANT, "query_id": query_id,
+                   "chosen": override or legacy["chosen"],
+                   "rejected": rejected if rejected is not None
+                   else (legacy["rejected"] if legacy else [])}
+        if omap:
+            payload["outcomes"] = omap
         if self.endpoint:
-            return self._http("/report_selection", {"tenant": TENANT,
-                              "query_id": query_id, "chosen": chosen,
-                              "rejected": rejected or []})
-        return self._local_fed().report_selection(TENANT, query_id, chosen, rejected)
+            return self._http("/report_selection", payload)
+        return self._local_fed().report_selection(TENANT, query_id, payload["chosen"],
+                                                  payload["rejected"])
 
     def report_outcome(self, skill_id, outcome) -> dict:
         if self.endpoint:

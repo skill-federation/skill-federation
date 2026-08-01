@@ -41,14 +41,14 @@ Usage:
 
 Env:
   SKILLFED_ENDPOINT  hosted federation URL (unset → local core via skillfed_client)
-  SKILLFED_TOP_N     candidates returned per wish (default 5)
+  SKILLFED_TOP_N     candidates returned per wish (default 10, clamped to the remote's 1–25)
   SKILLFED_K         paraphrase formulations concatenated into each query (default 4)
   SKILLFED_WORKERS   max concurrent wish searches (default 10)
 
 Output (stdout): JSON
   {
     "endpoint_mode": "hosted" | "local",
-    "top_n": 5,
+    "top_n": 10,
     "paraphrases_k": 4,
     "n_wishes": 4,
     "results": [
@@ -82,7 +82,24 @@ if HERE not in sys.path:
 from skillfed_client import SkillfedClient, ENDPOINT  # noqa: E402
 from local_skills import installed_skill_names, filter_candidates  # noqa: E402
 
-TOP_N = int(os.environ.get("SKILLFED_TOP_N", "5"))  # candidates returned per wish
+# The remote validates top_n and 422s the WHOLE search outside [1,25] — it does not silently
+# cap (probed 2026-07-31). So an unclamped SKILLFED_TOP_N=50 broke EVERY search on this tier.
+# Mirrors mcp-server/findSkills.mjs; the service is not in this repo, so treat the bounds as
+# measured, not contractual, and re-probe if searches start 422-ing.
+REMOTE_TOP_N_MIN, REMOTE_TOP_N_MAX = 1, 25
+TOP_N_FALLBACK = 10  # raised from 5 (D5): at 5 the cut excluded genuinely relevant skills
+
+
+def _clamp_top_n(raw, fallback: int = TOP_N_FALLBACK) -> int:
+    """Coerce anything (env string, junk, None) into a wire-legal top_n."""
+    try:
+        v = int(float(str(raw).strip()))
+    except (TypeError, ValueError):
+        return fallback
+    return min(REMOTE_TOP_N_MAX, max(REMOTE_TOP_N_MIN, v))
+
+
+TOP_N = _clamp_top_n(os.environ.get("SKILLFED_TOP_N"))  # candidates returned per wish
 K = int(os.environ.get("SKILLFED_K", "4"))          # paraphrase formulations concatenated per query
 WORKERS = int(os.environ.get("SKILLFED_WORKERS", "10"))
 
