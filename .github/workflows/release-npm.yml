@@ -31,8 +31,13 @@ jobs:
         with:
           node-version: '20'
           registry-url: 'https://registry.npmjs.org'
+      # "≥ 11.5.1" is a FLOOR — do not install @latest here. v0.2.0's first release attempt died
+      # on exactly that: npm@latest had become 12.0.2, whose engines are
+      # ^22.22.2 || ^24.15.0 || >=26.0.0, while this job pins Node 20 — EBADENGINE, and both
+      # publish steps were skipped. Pin the major instead: 11.x requires ^20.17.0 || >=22.9.0 and
+      # satisfies Trusted Publishing. Revisit deliberately if Node here moves past 20.
       - name: Upgrade npm (Trusted Publishing needs ≥ 11.5.1)
-        run: npm install -g npm@latest
+        run: npm install -g npm@^11
 
       # `npm publish` in installer/ runs its prepack -> scripts/vendor-payload.mjs, so the
       # payload is vendored into the tarball automatically. OIDC handles auth + provenance.
