@@ -26,6 +26,7 @@ import {
   existsSync, mkdirSync, copyFileSync, readFileSync, writeFileSync, statSync, chmodSync,
 } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
+import { installPublishedSkill } from './install-skill.mjs'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 
@@ -72,7 +73,9 @@ const PAYLOAD = [
   },
 ]
 
-const HELP = `Usage: npx skillfed [options]
+const HELP = `Usage:
+  npx skillfed [options]
+  npx skillfed install <owner/repository/skill|skillfed.io URL> [options]
 
   --scope user|project     where to install (default: user -> ~/.claude)
   --target <dir>           install into an explicit directory instead
@@ -81,6 +84,10 @@ const HELP = `Usage: npx skillfed [options]
   --with-hook              legacy alias for --hook end
   --with-npx               also register the npx -y skillfed-mcp MCP server
   --endpoint <url>         federation endpoint to record
+  --site <origin>          published-skill site (default: https://skillfed.io)
+  --dry-run                validate and show a skill install without writing files
+  --force                  replace an installed skill (keeps a .bak directory)
+  --allow-unlicensed       explicitly allow a missing/unsafe license label
   --help
 
 Hooks are a per-harness convenience, not part of the product. They only repeat triggers the
@@ -89,7 +96,8 @@ harness, and with no harness at all. Both nudge files are copied either way, so 
 --hook later never needs a re-fetch.`
 
 function parse() {
-  const { values } = parseArgs({
+  const { values, positionals } = parseArgs({
+    allowPositionals: true,
     options: {
       scope: { type: 'string', default: 'user' },
       target: { type: 'string' },
@@ -98,6 +106,10 @@ function parse() {
       'with-hook': { type: 'boolean', default: false },
       'with-npx': { type: 'boolean', default: false },
       endpoint: { type: 'string', default: 'https://qurini-skill-federation.hf.space' },
+      site: { type: 'string', default: 'https://skillfed.io' },
+      'dry-run': { type: 'boolean', default: false },
+      force: { type: 'boolean', default: false },
+      'allow-unlicensed': { type: 'boolean', default: false },
       help: { type: 'boolean', default: false },
     },
   })
@@ -123,7 +135,7 @@ function parse() {
     console.error(`error: harness '${values.harness}' has no hook support — drop --hook/--with-hook. The skill is complete without hooks.`)
     process.exit(2)
   }
-  return { ...values, hook }
+  return { ...values, hook, positionals }
 }
 
 // Resolve one payload file's on-disk source: prefer the vendored copy, fall back to the clone.
@@ -205,13 +217,51 @@ function hookEntries(skillDir, mode) {
   return out
 }
 
-function main() {
+async function main() {
   const opts = parse()
   const target = opts.target
     ? resolve(opts.target)
     : opts.scope === 'user'
       ? join(homedir(), '.claude')
       : join(process.cwd(), '.claude')
+
+  if (opts.positionals[0] === 'install') {
+    if (opts.positionals.length !== 2) {
+      console.error('error: usage: npx skillfed install <owner/repository/skill|skillfed.io URL>')
+      process.exit(2)
+    }
+    if (opts.hook !== 'none' || opts['with-npx']) {
+      console.error('error: --hook/--with-hook/--with-npx apply to the finder install, not a published skill')
+      process.exit(2)
+    }
+    const result = await installPublishedSkill({
+      reference: opts.positionals[1],
+      site: opts.site,
+      skillsDirectory: join(target, 'skills'),
+      dryRun: opts['dry-run'],
+      force: opts.force,
+      allowUnlicensed: opts['allow-unlicensed'],
+    })
+    console.log(`Skill Federation published-skill installer${result.dryRun ? ' (dry run)' : ''}`)
+    console.log(`  skill  : ${result.id}`)
+    console.log(`  license: ${result.license || 'missing'}`)
+    console.log(`  files  : ${result.files.length} (${result.declaredTotal.toLocaleString()} bytes)`)
+    console.log(`  target : ${result.destination}`)
+    if (result.backup) console.log(`  backup : ${result.backup}`)
+    console.log('')
+    console.log(result.dryRun
+      ? 'Validated. No files were written.'
+      : 'Installed after verifying every published SHA-256. Downloaded content was not executed.')
+    return
+  }
+  if (opts.positionals.length > 0) {
+    console.error(`error: unknown command '${opts.positionals[0]}'; run npx skillfed --help`)
+    process.exit(2)
+  }
+  if (opts['dry-run'] || opts.force || opts['allow-unlicensed'] || opts.site !== 'https://skillfed.io') {
+    console.error('error: --site/--dry-run/--force/--allow-unlicensed require the install command')
+    process.exit(2)
+  }
 
   console.log('Skill Federation installer (npx skillfed)')
   console.log(`  target : ${target}  (scope=${opts.scope})`)
@@ -278,4 +328,7 @@ function main() {
   console.log(`Endpoint: ${opts.endpoint}  (override with $SKILLFED_ENDPOINT)`)
 }
 
-main()
+main().catch((error) => {
+  console.error(`error: ${error.message}`)
+  process.exitCode = 1
+})

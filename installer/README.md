@@ -14,6 +14,19 @@ npx skillfed --with-npx       # + register the npx -y skillfed-mcp MCP server
 npx skillfed --scope project  # install into ./.claude
 ```
 
+Install one published skill by its catalog slug or page URL:
+
+```bash
+npx skillfed install owner/repository/skill
+npx skillfed install https://skillfed.io/owner/repository/skill --scope project
+```
+
+The published-skill path validates the record ID, license, file paths, origin, sizes, and
+SHA-256 hashes before writing under `.claude/skills/`. It never executes downloaded content.
+Use `--dry-run` to inspect the plan, or `--force` to replace an existing directory while
+keeping its previous contents in a `.bak` directory. Unlicensed records require the explicit
+`--allow-unlicensed` acknowledgement.
+
 Then **restart Claude Code** and run `/skillfed <what you're trying to do>` — or just work
 normally: the skill carries its own triggers (starting a plan, finishing one, hitting a gap
 mid-task), so it offers itself with no hook registered. Hooks are a per-harness convenience that

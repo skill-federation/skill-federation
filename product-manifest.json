@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "product": "skillfed",
+  "release": "0.2.0",
+  "repository": "https://github.com/skill-federation/skill-federation",
+  "site": "https://skillfed.io",
+  "federation_endpoint": "https://qurini-skill-federation.hf.space",
+  "backend_private": true,
+  "requirements": {
+    "node": ">=18",
+    "python": ">=3.9"
+  },
+  "packages": {
+    "npm_installer": "skillfed",
+    "npm_mcp": "skillfed-mcp",
+    "pypi_installer": "skillfed"
+  },
+  "install": {
+    "finder_node": "npx skillfed",
+    "finder_python": "uvx skillfed",
+    "mcp_node": "npx -y skillfed-mcp",
+    "published_skill": "npx skillfed install <owner/repository/skill>"
+  },
+  "catalog_scopes": {
+    "retrieval_backend": "Candidate records available to agent search and fetch.",
+    "public_inventory": "Unique skills counted by the skillfed.io research catalog.",
+    "published_directory": "Licensed skills with public pages, JSON records, and downloadable files."
+  },
+  "public_api": [
+    "/health",
+    "/search",
+    "/fetch",
+    "/report_selection",
+    "/report_demand",
+    "/mcp"
+  ]
+}

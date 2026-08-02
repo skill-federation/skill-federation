@@ -226,6 +226,17 @@ npx skillfed
 uvx skillfed
 ```
 
+**Install one published skill** by the slug shown on its skillfed.io page:
+
+```bash
+npx skillfed install owner/repository/skill
+```
+
+This path verifies the published license, file boundaries, sizes, and every SHA-256 before
+writing to `.claude/skills/`; downloaded content is never executed. Use `--dry-run` to
+validate an install first. See [the npm installer](installer/README.md) for replacement and
+license-acknowledgement options.
+
 **Prefer Claude Code's plugin system?** Add the marketplace and install the plugin:
 
 ```text

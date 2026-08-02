@@ -8,6 +8,7 @@
   },
   "files": [
     "cli.mjs",
+    "install-skill.mjs",
     "payload/SKILL.md",
     "payload/demand-sketch.md",
     "payload/plan_nudge.json",
