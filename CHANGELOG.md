@@ -6,6 +6,33 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.2.1] — 2026-08-04
+
+**`npx skillfed install <owner/repository/skill>` — checksum-verified installs from the
+published directory.** Every file is fetched from the skill's published record on skillfed.io,
+pinned to the record's declared SHA-256 and byte count, and written atomically under your
+harness's skills directory. Downloaded content is never executed.
+
+### Added
+- **`install` subcommand** (npx-only): slug or skillfed.io page URL; `--site` for another
+  origin (https, or loopback http for testing); `--dry-run` to see the validated plan without
+  downloading; `--force` to replace an existing skill (previous contents kept in a `.bak`
+  directory, with a warning when the replacement comes from a different record).
+- **Disclosure before write** — the record's license and security-scan verdict print before a
+  single file is written; a `fail` verdict refuses to install unless `--allow-failed-scan` is
+  passed, and unlicensed records require `--allow-unlicensed`.
+- **`.skillfed.json` provenance** — each installed skill records its record id, origin,
+  license, scan verdict, per-file SHA-256s, and install time.
+- **`product-manifest.json`** — machine-readable release/product metadata consumed by the
+  private ops monitor; its `release` field is now part of the version-drift test suite.
+- **Guardrails** — all-redirect refusal, origin + `/files/` pinning of every download URL,
+  path-safety validation (traversal, encoded separators, Windows reserved names, control
+  characters), per-file and total byte caps enforced while streaming, fetch timeouts, and
+  atomic install with rollback.
+
+### Fixed
+- The finder skill retries a failed first search instead of concluding the catalog is empty.
+
 ## [0.2.0] — 2026-07-31
 
 **Consult many, install rarely — and no harness required.** The finder had one mode: a hook
@@ -175,7 +202,8 @@ paths that all install the zero-runtime curl tier (the finder skill + `/skillfed
   fallback.
 - `mcp-server/package.json` gained a `repository` field (required for npm provenance).
 
-[Unreleased]: https://github.com/skill-federation/skill-federation/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/skill-federation/skill-federation/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/skill-federation/skill-federation/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/skill-federation/skill-federation/compare/v0.1.3...v0.2.0
 [0.1.3]: https://github.com/skill-federation/skill-federation/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/skill-federation/skill-federation/compare/v0.1.1...v0.1.2

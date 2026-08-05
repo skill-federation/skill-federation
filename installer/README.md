@@ -14,8 +14,8 @@ npx skillfed --with-npx       # + register the npx -y skillfed-mcp MCP server
 npx skillfed --scope project  # install into ./.claude
 ```
 
-Install one published skill by its catalog slug or page URL (ships with 0.2.1 — not yet on the
-published npm package, and npx-only: the shell, PowerShell, and Python installers don't have it):
+Install one published skill by its catalog slug or page URL (0.2.1+, npx-only — the shell,
+PowerShell, and Python installers don't have it):
 
 ```bash
 npx skillfed install owner/repository/skill

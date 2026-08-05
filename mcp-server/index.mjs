@@ -73,7 +73,7 @@ async function advisory(label, fn) {
 // Keep `version` equal to mcp-server/package.json — it is what an MCP client displays, and it
 // silently rotted from 0.1.0 through three releases. test/version.test.mjs asserts the pair.
 const server = new Server(
-  { name: "skillfed-mcp", version: "0.2.0" },
+  { name: "skillfed-mcp", version: "0.2.1" },
   { capabilities: { tools: {} } }
 );
 

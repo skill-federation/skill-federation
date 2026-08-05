@@ -232,8 +232,8 @@ uvx skillfed
 npx skillfed install owner/repository/skill
 ```
 
-The `install` subcommand ships with 0.2.1 — it is not yet on the published npm package, and it
-is npx-only (the shell, PowerShell, and Python installers don't have it). It checks the record
+The `install` subcommand ships with 0.2.1 and is npx-only — the shell, PowerShell, and Python
+installers don't have it. It checks the record
 carries a usable license label and refuses unlicensed records by default, validates file
 boundaries and sizes, and verifies every SHA-256 — checksums are pinned by the skill's
 published record — before writing to `.claude/skills/`; downloaded content is never executed.
