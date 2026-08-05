@@ -232,10 +232,15 @@ uvx skillfed
 npx skillfed install owner/repository/skill
 ```
 
-This path verifies the published license, file boundaries, sizes, and every SHA-256 before
-writing to `.claude/skills/`; downloaded content is never executed. Use `--dry-run` to
-validate an install first. See [the npm installer](installer/README.md) for replacement and
-license-acknowledgement options.
+The `install` subcommand ships with 0.2.1 — it is not yet on the published npm package, and it
+is npx-only (the shell, PowerShell, and Python installers don't have it). It checks the record
+carries a usable license label and refuses unlicensed records by default, validates file
+boundaries and sizes, and verifies every SHA-256 — checksums are pinned by the skill's
+published record — before writing to `.claude/skills/`; downloaded content is never executed.
+The record's license and security-scan verdict are printed before any file is written, and a
+`fail` verdict refuses to install unless you pass `--allow-failed-scan`. `--dry-run` shows the
+validated plan without downloading or writing files (it does not check file availability). See
+[the npm installer](installer/README.md) for replacement and license-acknowledgement options.
 
 **Prefer Claude Code's plugin system?** Add the marketplace and install the plugin:
 
@@ -264,7 +269,8 @@ config-safety details, see [`install.md`](install.md).
 ### Invocation options
 
 All four installers — `install.sh`, `install.ps1`, `npx skillfed`, `uvx skillfed` — take the same
-core flags: `-Flag` in PowerShell, `--flag` everywhere else.
+core flags for the **finder** install (`install <slug>` is npx-only): `-Flag` in PowerShell,
+`--flag` everywhere else.
 
 | Flag | Values | Default | What it does |
 |---|---|---|---|

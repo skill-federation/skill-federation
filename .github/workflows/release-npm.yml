@@ -39,6 +39,11 @@ jobs:
       - name: Upgrade npm (Trusted Publishing needs ≥ 11.5.1)
         run: npm install -g npm@^11
 
+      # The suite is dependency-free (bare `node --test`, stdlib only) — no npm install needed.
+      - name: Test (node --test)
+        working-directory: mcp-server
+        run: node --test
+
       # `npm publish` in installer/ runs its prepack -> scripts/vendor-payload.mjs, so the
       # payload is vendored into the tarball automatically. OIDC handles auth + provenance.
       #

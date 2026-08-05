@@ -26,7 +26,7 @@ import {
   existsSync, mkdirSync, copyFileSync, readFileSync, writeFileSync, statSync, chmodSync,
 } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
-import { installPublishedSkill } from './install-skill.mjs'
+import { installPublishedSkill, sanitizeForDisplay } from './install-skill.mjs'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 
@@ -85,9 +85,10 @@ const HELP = `Usage:
   --with-npx               also register the npx -y skillfed-mcp MCP server
   --endpoint <url>         federation endpoint to record
   --site <origin>          published-skill site (default: https://skillfed.io)
-  --dry-run                validate and show a skill install without writing files
+  --dry-run                validate and show the install plan without downloading or writing files
   --force                  replace an installed skill (keeps a .bak directory)
   --allow-unlicensed       explicitly allow a missing/unsafe license label
+  --allow-failed-scan      install even when the published security scan verdict is 'fail'
   --help
 
 Hooks are a per-harness convenience, not part of the product. They only repeat triggers the
@@ -110,6 +111,7 @@ function parse() {
       'dry-run': { type: 'boolean', default: false },
       force: { type: 'boolean', default: false },
       'allow-unlicensed': { type: 'boolean', default: false },
+      'allow-failed-scan': { type: 'boolean', default: false },
       help: { type: 'boolean', default: false },
     },
   })
@@ -234,6 +236,12 @@ async function main() {
       console.error('error: --hook/--with-hook/--with-npx apply to the finder install, not a published skill')
       process.exit(2)
     }
+    if (opts.endpoint !== 'https://qurini-skill-federation.hf.space') {
+      console.error('error: --endpoint applies to the finder install; use --site for the published-skill source')
+      process.exit(2)
+    }
+    // onPlan prints the verdict + license BEFORE a single file is downloaded or written —
+    // that ordering is part of the JSON API contract, not a cosmetic choice.
     const result = await installPublishedSkill({
       reference: opts.positionals[1],
       site: opts.site,
@@ -241,16 +249,28 @@ async function main() {
       dryRun: opts['dry-run'],
       force: opts.force,
       allowUnlicensed: opts['allow-unlicensed'],
+      allowFailedScan: opts['allow-failed-scan'],
+      onPlan: (plan) => {
+        const scan = plan.security.verdict === null
+          ? 'not scanned'
+          : sanitizeForDisplay(plan.security.scannedAt
+            ? `${plan.security.verdict} (${plan.security.scannedAt})`
+            : plan.security.verdict)
+        console.log(`Skill Federation published-skill installer${plan.dryRun ? ' (dry run)' : ''}`)
+        console.log(`  skill  : ${plan.id}`)
+        console.log(`  license: ${sanitizeForDisplay(plan.license) || 'missing'}`)
+        console.log(`  scan   : ${scan}`)
+        console.log(`  files  : ${plan.files.length} (${plan.declaredTotal.toLocaleString()} bytes)`)
+        console.log(`  target : ${plan.destination}`)
+      },
     })
-    console.log(`Skill Federation published-skill installer${result.dryRun ? ' (dry run)' : ''}`)
-    console.log(`  skill  : ${result.id}`)
-    console.log(`  license: ${result.license || 'missing'}`)
-    console.log(`  files  : ${result.files.length} (${result.declaredTotal.toLocaleString()} bytes)`)
-    console.log(`  target : ${result.destination}`)
     if (result.backup) console.log(`  backup : ${result.backup}`)
+    if (result.replacedId) {
+      console.log(`warning: replaced a skill previously installed from ${sanitizeForDisplay(result.replacedId)}`)
+    }
     console.log('')
     console.log(result.dryRun
-      ? 'Validated. No files were written.'
+      ? 'Plan validated. No files were downloaded or written; a dry run does not check file availability.'
       : 'Installed after verifying every published SHA-256. Downloaded content was not executed.')
     return
   }
@@ -258,8 +278,11 @@ async function main() {
     console.error(`error: unknown command '${opts.positionals[0]}'; run npx skillfed --help`)
     process.exit(2)
   }
-  if (opts['dry-run'] || opts.force || opts['allow-unlicensed'] || opts.site !== 'https://skillfed.io') {
-    console.error('error: --site/--dry-run/--force/--allow-unlicensed require the install command')
+  if (
+    opts['dry-run'] || opts.force || opts['allow-unlicensed'] || opts['allow-failed-scan']
+    || opts.site !== 'https://skillfed.io'
+  ) {
+    console.error('error: --site/--dry-run/--force/--allow-unlicensed/--allow-failed-scan require the install command')
     process.exit(2)
   }
 
@@ -329,6 +352,7 @@ async function main() {
 }
 
 main().catch((error) => {
-  console.error(`error: ${error.message}`)
+  console.error(`error: ${error?.message ?? error}`)
+  if (process.env.SKILLFED_DEBUG) console.error(error?.stack)
   process.exitCode = 1
 })

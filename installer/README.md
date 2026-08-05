@@ -14,18 +14,23 @@ npx skillfed --with-npx       # + register the npx -y skillfed-mcp MCP server
 npx skillfed --scope project  # install into ./.claude
 ```
 
-Install one published skill by its catalog slug or page URL:
+Install one published skill by its catalog slug or page URL (ships with 0.2.1 — not yet on the
+published npm package, and npx-only: the shell, PowerShell, and Python installers don't have it):
 
 ```bash
 npx skillfed install owner/repository/skill
 npx skillfed install https://skillfed.io/owner/repository/skill --scope project
 ```
 
-The published-skill path validates the record ID, license, file paths, origin, sizes, and
-SHA-256 hashes before writing under `.claude/skills/`. It never executes downloaded content.
-Use `--dry-run` to inspect the plan, or `--force` to replace an existing directory while
-keeping its previous contents in a `.bak` directory. Unlicensed records require the explicit
-`--allow-unlicensed` acknowledgement.
+The published-skill path validates the record ID, file paths, origin, and sizes, checks the
+record carries a usable license label (refusing unlicensed records by default), and verifies
+every SHA-256 — checksums are pinned by the skill's published record — before writing under
+`.claude/skills/`. It never executes downloaded content. The record's license and security-scan
+verdict are printed on a `scan` line before any file is written; a `fail` verdict refuses to
+install unless you pass `--allow-failed-scan`. `--dry-run` shows the validated plan without
+downloading or writing files (it does not check file availability); `--force` replaces an
+existing directory while keeping its previous contents in a `.bak` directory. Unlicensed
+records require the explicit `--allow-unlicensed` acknowledgement.
 
 Then **restart Claude Code** and run `/skillfed <what you're trying to do>` — or just work
 normally: the skill carries its own triggers (starting a plan, finishing one, hitting a gap

@@ -36,11 +36,12 @@ publisher; npm became tokenless after v0.1.0, since npm only lets you configure 
 ### Release a new version
 
 ```bash
-# 1. bump the version in all SIX manifests (five files; server.json holds two version fields):
+# 1. bump the version in all SEVEN manifests (six files; server.json holds two version fields):
 #    installer/package.json · python-installer/pyproject.toml ·
 #    mcp-server/package.json · integrations/claude-code/.claude-plugin/plugin.json ·
 #    .claude-plugin/marketplace.json      <- the one the old four-item list forgot; it was
 #                                            stranded at 0.1.2 across two releases because of it
+#    product-manifest.json                <- its `release` field
 #    mcp-server/server.json               <- BOTH `version` and `packages[0].version` (§4)
 # 2. tag + push:
 git tag v0.2.0
