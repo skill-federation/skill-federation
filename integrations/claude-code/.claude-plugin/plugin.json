@@ -1,7 +1,7 @@
 {
   "name": "skill-federation",
   "description": "The trusted skill layer for AI agents. Finds vetted agent skills for your task, mid-flow, from a federated catalog — with license/provenance trust metadata and a feedback flywheel. Search backend stays remote; only this thin integration ships.",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "author": {
     "name": "Skill Federation"
   },

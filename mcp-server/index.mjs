@@ -13,6 +13,9 @@
  *
  * Tools (contracts/federation-mcp-tools.md):
  *   find_skills          — lexical-recall search over a wish-list (the only discovery path)
+ *   find_packages        — capability search over the PyPI package index (skillfed.io portal,
+ *                          a DIFFERENT service from the skill federation above). Skills are
+ *                          capabilities for the agent; packages are libraries for the code.
  *   get_skill_bundle     — fetch a skill's full text to READ (purpose "hint", the default)
  *                          or to install (purpose "install"); the tag is echoed back
  *   report_selection     — per-wish outcome map {skill_id: [Install|Read|Reject, why]},
@@ -24,9 +27,12 @@
  *
  * PRIVACY (Principle IV): only abstracted wishes (description + paraphrased formulations
  * + keywords) and, on a miss, a capability sketch ever cross the boundary. Never the plan/brief/output.
+ * find_packages holds the same floor: only the capability phrase + keywords cross the wire.
  *
  * Config (env): SKILLFED_ENDPOINT (required), SKILLFED_API_KEY (optional),
  * SKILLFED_TENANT, SKILLFED_TOP_N (10, clamped to the remote's 1–25), SKILLFED_K (4).
+ * find_packages: SKILLFED_PACKAGES_ENDPOINT (default https://skillfed.io),
+ * SKILLFED_PKG_LIMIT (10, clamped to 1–25).
  *
  * Tool SCHEMAS live in tools.mjs — this file connects a stdio transport at the top level,
  * so it can never be imported (by a test or anything else) without starting a server.
@@ -41,6 +47,7 @@ import {
 
 import { federation } from "./federation.mjs";
 import { findSkills } from "./findSkills.mjs";
+import { findPackages } from "./findPackages.mjs";
 import { TOOLS } from "./tools.mjs";
 
 function jsonResult(obj) {
@@ -73,7 +80,7 @@ async function advisory(label, fn) {
 // Keep `version` equal to mcp-server/package.json — it is what an MCP client displays, and it
 // silently rotted from 0.1.0 through three releases. test/version.test.mjs asserts the pair.
 const server = new Server(
-  { name: "skillfed-mcp", version: "0.2.1" },
+  { name: "skillfed-mcp", version: "0.2.2" },
   { capabilities: { tools: {} } }
 );
 
@@ -87,6 +94,11 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
       // top_n. validateWishlist accepts both the bare array and the {wishlist} shape.
       case "find_skills":
         return jsonResult(await findSkills(args));
+      // Pass `args` whole for the same reason as find_skills: unwrapping to args.wishlist
+      // would drop the sibling `limit` field. validatePackageWishlist accepts both the bare
+      // array and the {wishlist} shape.
+      case "find_packages":
+        return jsonResult(await findPackages(args));
       case "get_skill_bundle": {
         // Unknown values fall back to "hint" — the reading default writes nothing, so
         // guessing wrong here is harmless in the direction that matters.

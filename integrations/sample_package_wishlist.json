@@ -1,0 +1,19 @@
+{
+  "wishlist": [
+    {
+      "name": "yaml-config",
+      "description": "parse yaml config",
+      "keywords": ["yaml", "config"]
+    },
+    {
+      "name": "http-retries",
+      "description": "retrying http client",
+      "keywords": ["http", "retry", "backoff"]
+    },
+    {
+      "name": "cli-progress",
+      "description": "terminal progress bar",
+      "keywords": ["progress", "cli"]
+    }
+  ]
+}

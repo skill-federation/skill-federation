@@ -15,8 +15,9 @@ import assert from "node:assert/strict";
 
 process.env.SKILLFED_ENDPOINT = "";
 
-const { TOOLS, WISH_SCHEMA } = await import("../tools.mjs");
+const { TOOLS, WISH_SCHEMA, PACKAGE_WISH_SCHEMA } = await import("../tools.mjs");
 const { clampTopN, REMOTE_TOP_N_MIN, REMOTE_TOP_N_MAX } = await import("../findSkills.mjs");
+const { clampLimit, LIMIT_MIN, LIMIT_MAX } = await import("../findPackages.mjs");
 
 const byName = new Map(TOOLS.map((t) => [t.name, t]));
 const tool = (n) => {
@@ -46,10 +47,10 @@ function requiredIsDeclared(schema, where) {
   }
 }
 
-test("the four federation tools are exported", () => {
+test("the five federation tools are exported", () => {
   assert.deepEqual(
     TOOLS.map((t) => t.name).sort(),
-    ["emit_demand_pointer", "find_skills", "get_skill_bundle", "report_selection"]
+    ["emit_demand_pointer", "find_packages", "find_skills", "get_skill_bundle", "report_selection"]
   );
 });
 
@@ -92,6 +93,44 @@ test("find_skills: top_n bounds mirror the clamp that actually enforces them", (
   assert.equal(topN.default, 10);
   assert.equal("wishlist" in tool("find_skills").inputSchema.properties, true);
   assert.deepEqual(tool("find_skills").inputSchema.required, ["wishlist"]);
+});
+
+test("find_packages: wish schema requires only description", () => {
+  requiredIsDeclared(PACKAGE_WISH_SCHEMA, "PACKAGE_WISH_SCHEMA");
+  assert.deepEqual(PACKAGE_WISH_SCHEMA.required, ["description"]);
+  assert.equal(PACKAGE_WISH_SCHEMA.properties.keywords.maxItems, 5);
+  assert.equal(
+    PACKAGE_WISH_SCHEMA.properties.keywords.minItems,
+    undefined,
+    "keywords are optional for a package wish, unlike find_skills'"
+  );
+});
+
+test("find_packages: wishlist bounds match the validator (1–10)", () => {
+  const wishlist = tool("find_packages").inputSchema.properties.wishlist;
+  assert.equal(wishlist.type, "array");
+  assert.equal(wishlist.minItems, 1);
+  assert.equal(wishlist.maxItems, 10);
+  assert.equal(
+    wishlist.items,
+    PACKAGE_WISH_SCHEMA,
+    "the schema must reuse PACKAGE_WISH_SCHEMA, not a copy"
+  );
+  assert.deepEqual(tool("find_packages").inputSchema.required, ["wishlist"]);
+});
+
+test("find_packages: limit bounds mirror the clamp that actually enforces them", () => {
+  const limit = tool("find_packages").inputSchema.properties.limit;
+  assert.ok(limit, "find_packages has no limit");
+  assert.equal(limit.type, "integer");
+  assert.equal(limit.minimum, LIMIT_MIN);
+  assert.equal(limit.maximum, LIMIT_MAX);
+  assert.equal(LIMIT_MIN, REMOTE_TOP_N_MIN, "bounds happen to match find_skills' top_n");
+  assert.equal(LIMIT_MAX, REMOTE_TOP_N_MAX);
+  // clampLimit(NaN) is the fallback the resolution order ends at — the advertised default
+  // must be the same number, or a client that omits limit gets something else.
+  assert.equal(limit.default, clampLimit(NaN));
+  assert.equal(limit.default, 10);
 });
 
 test("get_skill_bundle: purpose is a two-value enum defaulting to the read path", () => {

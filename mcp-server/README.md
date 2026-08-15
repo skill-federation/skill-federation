@@ -1,8 +1,17 @@
 # skillfed-mcp — optional Node MCP server
 
-**Find vetted agent skills for your task** — exposes the Skill Federation finder to Claude and
-any MCP client as first-class MCP tools (`find_skills`, `get_skill_bundle`). The indexed catalog
-it searches is browsable on the web at [skillfed.io](https://skillfed.io).
+**Find vetted agent skills for your task, and PyPI packages for your code** — exposes the Skill
+Federation finder to Claude and any MCP client as first-class MCP tools (`find_skills`,
+`find_packages`, `get_skill_bundle`). The indexed catalogs are browsable on the web at
+[skillfed.io](https://skillfed.io).
+
+**`find_skills` vs. `find_packages`.** Skills are capabilities for the *agent itself* — how to
+do a task. Packages are libraries for the *code being written* — what the program imports. Reach
+for `find_packages` when you're about to `pip install` something recalled from memory, unsure
+which package does X, comparing alternatives to a package you already know, or verifying a
+remembered package name is real and maintained — never install a name recalled from memory when
+it can be resolved against the index first (a hallucinated or squatted name is a supply-chain
+risk the index removes for free).
 
 > **This is the optional Node tier.** The **default** Skill Federation install is the
 > runtime-free **curl-based plugin** under `../integrations/claude-code/` — it needs no
@@ -10,17 +19,26 @@ it searches is browsable on the web at [skillfed.io](https://skillfed.io).
 > server only if you're on the **npm Claude Code CLI** (or otherwise have **Node ≥18**) and
 > want Claude to call the federation as first-class MCP tools (no shell-out).
 
-It exposes the same hosted federation as four MCP tools over stdio:
+It exposes five MCP tools over stdio — four over the hosted **skill** federation, plus one over
+the separate **package** portal:
 
 | Tool | Maps to | Purpose |
 |---|---|---|
 | `find_skills` | `/search` (per wish, fanned out) | lexical-recall search over a wish-list; optional `top_n` (1–25, default 10) |
+| `find_packages` | skillfed.io `/api/packages/search.json` (per wish, fanned out) | capability search over the PyPI package index — a **different service** from the skill federation above, GET-only, no auth, no tenant; optional `limit` (1–25, default 10) |
 | `get_skill_bundle` | `/fetch` | fetch a skill's full text — **to consult, or to install**: `purpose: "hint"` (default) reads it in context and writes nothing; `purpose: "install"` is the later, user-approved decision |
 | `report_selection` | `/report_selection` | what each shown candidate was worth: `outcomes` maps `skill_id → ["Install"\|"Read"\|"Reject", reason]`. **A Read is a hit** |
 | `emit_demand_pointer` | `/report_demand` | demand on a genuine miss (empty OR everything rejected — never when you read something): `wish` + a `sketch` **string** per `demand-sketch.md` |
 
-The request/response shapes are identical to the curl plugin's `/search`, `/fetch`,
-`/report_selection`, and `/report_demand` calls, with two client-side conveniences:
+`find_packages` normalizes each candidate to `id, name, capability, worth_installing,
+license_treatment, tier, page_url, md_url, json_url`. **`score` is deliberately dropped** — it's
+a sum of `1/(60+rank)` RRF terms (max ~0.033) and reads as a meaningless decimal, not a signal to
+act on.
+
+The request/response shapes of the four **skill**-federation tools are identical to the curl
+plugin's `/search`, `/fetch`, `/report_selection`, and `/report_demand` calls, with two
+client-side conveniences (`find_packages` has no curl-tier counterpart — it only exists here and
+in the optional Python `integrations/` tier, see below):
 
 - **`top_n` is clamped, not forwarded blindly.** The remote 422s the *entire* search for a value
   outside `1..25` (it does not silently cap), so the client resolves per-call `top_n` →
@@ -92,6 +110,8 @@ Add to your project `.mcp.json` (or `~/.claude.json`). The server installs nothi
 | `SKILLFED_TENANT` | `$USER`/`$USERNAME`/`local` | tenant id |
 | `SKILLFED_TOP_N` | `10` | candidates per wish, **1–25**; out-of-range values are clamped and unparseable ones fall back (env → `10`, per-call → the env value), never sent raw. A per-call `top_n` on `find_skills` overrides it |
 | `SKILLFED_K` | `4` | paraphrase formulations concatenated per query |
+| `SKILLFED_PACKAGES_ENDPOINT` | `https://skillfed.io` | portal origin queried by `find_packages` — a separate service, not `SKILLFED_ENDPOINT` |
+| `SKILLFED_PKG_LIMIT` | `10` | candidates per wish for `find_packages`, **1–25**, clamped the same way as `SKILLFED_TOP_N`. A per-call `limit` overrides it |
 
 **On `top_n`.** The default is 10 because a top-5 cut measurably drops good, genuinely distinct
 skills, while past ~10 the marginal candidate is usually a vendored or translated copy of one you
@@ -105,4 +125,5 @@ independent sources to cross-check, and dedupe by owner+name before reading. The
 npm install
 npx @modelcontextprotocol/inspector node index.mjs
 # then call find_skills with ../integrations/sample_wishlist.json
+# or find_packages with ../integrations/sample_package_wishlist.json
 ```

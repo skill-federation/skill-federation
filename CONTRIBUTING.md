@@ -27,16 +27,18 @@ The finder, installers, and MCP server live here and *do* take pull requests. Se
 No build step for the core finder — it's Python standard library only.
 
 ```
-integrations/search_wishlist.py   the wish-list finder (async fan-out search)
+integrations/search_wishlist.py   the SKILL wish-list finder (async fan-out search)
 integrations/skillfed_client.py   the client seam (hosted endpoint or local core)
 integrations/local_skills.py      installed-skill detection + candidate filtering
+integrations/search_packages.py   the PACKAGE wish-list finder — a different, GET-only,
+                                   no-auth service (skillfed.io); no client seam of its own
 installer/                        npm package `skillfed`   (npx no-clone path)
 python-installer/                 PyPI package `skillfed`  (uvx / pipx path)
 mcp-server/                       optional typed MCP tools (`skillfed-mcp`)
 scripts/vendor-payload.mjs        vendors the payload into both packages (single source of truth)
 ```
 
-Point the client at a federation endpoint and run a wish-list:
+Point the client at a federation endpoint and run a skill wish-list:
 
 ```bash
 export SKILLFED_ENDPOINT="https://your-federation.example.com"   # or the keyless demo default
@@ -45,6 +47,16 @@ echo '{"wishlist":[{"name":"pdf","description":"extract tables from PDFs","keywo
 ```
 
 `integrations/sample_wishlist.json` is a ready example.
+
+For **packages** (a separate index — PyPI libraries, not agent skills), no endpoint is required
+(defaults to `https://skillfed.io`):
+
+```bash
+echo '{"wishlist":[{"description":"parse yaml config","keywords":["yaml","config"]}]}' \
+  | python integrations/search_packages.py -
+```
+
+`integrations/sample_package_wishlist.json` is a ready example.
 
 ## Pull request guidelines
 

@@ -60,6 +60,30 @@ export const WISH_SCHEMA = {
   },
 };
 
+export const PACKAGE_WISH_SCHEMA = {
+  type: "object",
+  required: ["description"],
+  properties: {
+    name: {
+      type: "string",
+      description: "optional short local label for this wish (display-only, stays local)",
+    },
+    description: {
+      type: "string",
+      description:
+        "the capability, phrased as the TASK, not a package name — e.g. \"parse yaml config\", " +
+        "not \"pyyaml\". 3–8 dense words; longer prose measurably dilutes the match. One " +
+        "capability per wish — split a compound need into separate wishes.",
+    },
+    keywords: {
+      type: "array",
+      items: { type: "string" },
+      maxItems: 5,
+      description: "optional extra terms folded into the query (not a filter on the results)",
+    },
+  },
+};
+
 export const TOOLS = [
   {
     name: "find_skills",
@@ -92,6 +116,50 @@ export const TOOLS = [
             "practice — you want several independent skills to cross-check. Expect near-duplicates " +
             "(the same skill vendored across aggregator repos, or translated); dedupe by owner+name " +
             "before reading.",
+        },
+      },
+    },
+  },
+  {
+    name: "find_packages",
+    description:
+      "Search the Skill Federation package index for PyPI libraries by capability — the " +
+      "package-finding sibling of find_skills, but do not confuse the two: skills are " +
+      "capabilities for the AGENT itself (how to do a task); packages are libraries for the " +
+      "CODE being written (what the program imports). Use find_packages when you are choosing " +
+      "a Python library — about to `pip install` something recalled from memory, unsure which " +
+      "package does X, wanting alternatives to a package you already know, or verifying that a " +
+      "remembered package name is real and maintained. " +
+      "Anti-slopsquat rule: never install a package name recalled from memory when it can be " +
+      "resolved against the index first — a hallucinated or squatted name is a supply-chain " +
+      "risk this removes for free. " +
+      "Wish-formulation rules (derived from the live ranker, not vibes): phrase the TASK, not a " +
+      "package name — the tags lane is weighted 3x and matches task vocabulary, so " +
+      "\"parse yaml config\" outranks guessing \"pyyaml\"; keep each wish to 3–8 dense words, " +
+      "longer prose dilutes the match; one capability per wish, fan a compound need out into " +
+      "separate wishes; treat license/maintenance/popularity as FILTERS on the returned " +
+      "license_treatment/tier fields of the results, not as extra query words hoping to steer " +
+      "the ranker.",
+    inputSchema: {
+      type: "object",
+      required: ["wishlist"],
+      properties: {
+        wishlist: {
+          type: "array",
+          minItems: 1,
+          maxItems: 10,
+          items: PACKAGE_WISH_SCHEMA,
+          description: "1–10 package wishes, each a capability the code being written needs",
+        },
+        // Bounds mirror LIMIT_MIN/MAX in findPackages.mjs, which is where they are actually
+        // enforced — this schema is advisory, the clamp is what keeps an out-of-range value
+        // from silently riding on whatever the portal happens to default to.
+        limit: {
+          type: "integer",
+          minimum: 1,
+          maximum: 25,
+          default: 10,
+          description: "candidates per wish (1–25, default 10)",
         },
       },
     },

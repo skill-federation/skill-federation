@@ -6,6 +6,33 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.2.2] — 2026-08-14
+
+**`find_packages` — the package-finding sibling of `find_skills`.** Skills are capabilities for
+the agent itself; packages are libraries for the code being written. This closes that other half:
+a wishlist-style capability search over the PyPI package index at skillfed.io, so an agent can
+resolve "what library does X" against a real, maintained index instead of `pip install`ing a name
+recalled from memory.
+
+### Added
+- **`find_packages` MCP tool** (`mcp-server/`): 1–10 package wishes (a capability phrase + optional
+  keywords), fanned out concurrently against skillfed.io's `GET /api/packages/search.json`, with
+  an optional `limit` (1–25, default 10, clamped client-side the same way `find_skills`' `top_n`
+  is). Candidates normalize to `id, name, capability, worth_installing, license_treatment, tier,
+  page_url, md_url, json_url` — `score` is deliberately never surfaced (it's a sum of `1/(60+rank)`
+  RRF terms, max ~0.033, and reads as a meaningless decimal).
+- **Anti-slopsquat guidance in the tool description**: never install a package name recalled from
+  memory when it can be resolved against the index first. Wish-formulation rules stated as
+  measured facts about the live ranker, not vibes — phrase the task, not a package name (the tags
+  lane is weighted 3x); 3–8 dense words; one capability per wish; license/maintenance/popularity
+  are filters on the results, not extra query words.
+- **`integrations/search_packages.py`** — the Python twin, mirroring how `find_skills` is already
+  mirrored between `mcp-server/findSkills.mjs` and `integrations/search_wishlist.py` for the
+  no-Node "advanced/CI tier". Talks directly to skillfed.io (GET, no auth, no tenant) — it has no
+  client-seam dependency on `skillfed_client.py`, which is specific to the skill federation.
+- Same privacy floor as `find_skills`: only the capability phrase + keywords cross the wire; the
+  wish `name`, if given, is display-only and stays local.
+
 ## [0.2.1] — 2026-08-04
 
 **`npx skillfed install <owner/repository/skill>` — checksum-verified installs from the
@@ -202,7 +229,8 @@ paths that all install the zero-runtime curl tier (the finder skill + `/skillfed
   fallback.
 - `mcp-server/package.json` gained a `repository` field (required for npm provenance).
 
-[Unreleased]: https://github.com/skill-federation/skill-federation/compare/v0.2.1...HEAD
+[Unreleased]: https://github.com/skill-federation/skill-federation/compare/v0.2.2...HEAD
+[0.2.2]: https://github.com/skill-federation/skill-federation/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/skill-federation/skill-federation/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/skill-federation/skill-federation/compare/v0.1.3...v0.2.0
 [0.1.3]: https://github.com/skill-federation/skill-federation/compare/v0.1.2...v0.1.3
