@@ -15,9 +15,14 @@ import assert from "node:assert/strict";
 
 process.env.SKILLFED_ENDPOINT = "";
 
-const { TOOLS, WISH_SCHEMA, PACKAGE_WISH_SCHEMA } = await import("../tools.mjs");
+const { TOOLS, WISH_SCHEMA, PACKAGE_WISH_SCHEMA, RESEARCH_WISH_SCHEMA } = await import("../tools.mjs");
 const { clampTopN, REMOTE_TOP_N_MIN, REMOTE_TOP_N_MAX } = await import("../findSkills.mjs");
 const { clampLimit, LIMIT_MIN, LIMIT_MAX } = await import("../findPackages.mjs");
+const {
+  clampLimit: clampResearchLimit,
+  LIMIT_MIN: RESEARCH_LIMIT_MIN,
+  LIMIT_MAX: RESEARCH_LIMIT_MAX,
+} = await import("../findResearch.mjs");
 
 const byName = new Map(TOOLS.map((t) => [t.name, t]));
 const tool = (n) => {
@@ -47,10 +52,17 @@ function requiredIsDeclared(schema, where) {
   }
 }
 
-test("the five federation tools are exported", () => {
+test("the six federation tools are exported", () => {
   assert.deepEqual(
     TOOLS.map((t) => t.name).sort(),
-    ["emit_demand_pointer", "find_packages", "find_skills", "get_skill_bundle", "report_selection"]
+    [
+      "emit_demand_pointer",
+      "find_packages",
+      "find_research",
+      "find_skills",
+      "get_skill_bundle",
+      "report_selection",
+    ]
   );
 });
 
@@ -131,6 +143,52 @@ test("find_packages: limit bounds mirror the clamp that actually enforces them",
   // must be the same number, or a client that omits limit gets something else.
   assert.equal(limit.default, clampLimit(NaN));
   assert.equal(limit.default, 10);
+});
+
+test("find_research: wish schema requires only description", () => {
+  requiredIsDeclared(RESEARCH_WISH_SCHEMA, "RESEARCH_WISH_SCHEMA");
+  assert.deepEqual(RESEARCH_WISH_SCHEMA.required, ["description"]);
+  assert.equal(RESEARCH_WISH_SCHEMA.properties.keywords.maxItems, 5);
+  assert.equal(
+    RESEARCH_WISH_SCHEMA.properties.keywords.minItems,
+    undefined,
+    "keywords are optional for a research wish, unlike find_skills'"
+  );
+});
+
+test("find_research: wishlist bounds match the validator (1–10)", () => {
+  const wishlist = tool("find_research").inputSchema.properties.wishlist;
+  assert.equal(wishlist.type, "array");
+  assert.equal(wishlist.minItems, 1);
+  assert.equal(wishlist.maxItems, 10);
+  assert.equal(
+    wishlist.items,
+    RESEARCH_WISH_SCHEMA,
+    "the schema must reuse RESEARCH_WISH_SCHEMA, not a copy"
+  );
+  assert.deepEqual(tool("find_research").inputSchema.required, ["wishlist"]);
+});
+
+test("find_research: limit bounds mirror the clamp that actually enforces them", () => {
+  const limit = tool("find_research").inputSchema.properties.limit;
+  assert.ok(limit, "find_research has no limit");
+  assert.equal(limit.type, "integer");
+  assert.equal(limit.minimum, RESEARCH_LIMIT_MIN);
+  assert.equal(limit.maximum, RESEARCH_LIMIT_MAX);
+  assert.equal(RESEARCH_LIMIT_MIN, LIMIT_MIN, "bounds happen to match find_packages' limit");
+  assert.equal(RESEARCH_LIMIT_MAX, LIMIT_MAX);
+  // clampResearchLimit(NaN) is the fallback the resolution order ends at — the advertised
+  // default must be the same number, or a client that omits limit gets something else.
+  assert.equal(limit.default, clampResearchLimit(NaN));
+  assert.equal(limit.default, 10);
+});
+
+test("find_research: description states confidence honestly and the retrieval limit", () => {
+  const desc = tool("find_research").description;
+  assert.match(desc, /confidence/i);
+  assert.match(desc, /weak/i);
+  assert.match(desc, /does NOT prove/i, "must not let a miss read as proof of absence");
+  assert.match(desc, /67/, "the measured retrieval-limit rank must be stated, not softened away");
 });
 
 test("get_skill_bundle: purpose is a two-value enum defaulting to the read path", () => {

@@ -16,6 +16,12 @@
  *   find_packages        — capability search over the PyPI package index (skillfed.io portal,
  *                          a DIFFERENT service from the skill federation above). Skills are
  *                          capabilities for the agent; packages are libraries for the code.
+ *   find_research        — topic search over 191 research notes on agent-skills literature
+ *                          (skillfed.io portal, a different index from find_packages on the
+ *                          same host). Surfaces a per-search confidence ("strong"|"weak") and
+ *                          a note when weak; a weak or empty result does NOT prove no such
+ *                          research exists (measured miss at rank #67 of 191 — see
+ *                          findResearch.mjs).
  *   get_skill_bundle     — fetch a skill's full text to READ (purpose "hint", the default)
  *                          or to install (purpose "install"); the tag is echoed back
  *   report_selection     — per-wish outcome map {skill_id: [Install|Read|Reject, why]},
@@ -27,12 +33,14 @@
  *
  * PRIVACY (Principle IV): only abstracted wishes (description + paraphrased formulations
  * + keywords) and, on a miss, a capability sketch ever cross the boundary. Never the plan/brief/output.
- * find_packages holds the same floor: only the capability phrase + keywords cross the wire.
+ * find_packages and find_research hold the same floor: only the phrase + keywords cross the wire.
  *
  * Config (env): SKILLFED_ENDPOINT (required), SKILLFED_API_KEY (optional),
  * SKILLFED_TENANT, SKILLFED_TOP_N (10, clamped to the remote's 1–25), SKILLFED_K (4).
  * find_packages: SKILLFED_PACKAGES_ENDPOINT (default https://skillfed.io),
  * SKILLFED_PKG_LIMIT (10, clamped to 1–25).
+ * find_research: SKILLFED_RESEARCH_ENDPOINT (default https://skillfed.io),
+ * SKILLFED_RESEARCH_LIMIT (10, clamped to 1–25).
  *
  * Tool SCHEMAS live in tools.mjs — this file connects a stdio transport at the top level,
  * so it can never be imported (by a test or anything else) without starting a server.
@@ -48,6 +56,7 @@ import {
 import { federation } from "./federation.mjs";
 import { findSkills } from "./findSkills.mjs";
 import { findPackages } from "./findPackages.mjs";
+import { findResearch } from "./findResearch.mjs";
 import { TOOLS } from "./tools.mjs";
 
 function jsonResult(obj) {
@@ -80,7 +89,7 @@ async function advisory(label, fn) {
 // Keep `version` equal to mcp-server/package.json — it is what an MCP client displays, and it
 // silently rotted from 0.1.0 through three releases. test/version.test.mjs asserts the pair.
 const server = new Server(
-  { name: "skillfed-mcp", version: "0.2.2" },
+  { name: "skillfed-mcp", version: "0.2.3" },
   { capabilities: { tools: {} } }
 );
 
@@ -99,6 +108,10 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
       // array and the {wishlist} shape.
       case "find_packages":
         return jsonResult(await findPackages(args));
+      // Same reasoning as find_packages: pass `args` whole so the sibling `limit` field
+      // survives. validateResearchWishlist accepts both the bare array and {wishlist} shape.
+      case "find_research":
+        return jsonResult(await findResearch(args));
       case "get_skill_bundle": {
         // Unknown values fall back to "hint" — the reading default writes nothing, so
         // guessing wrong here is harmless in the direction that matters.

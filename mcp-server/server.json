@@ -1,17 +1,17 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.skill-federation/skillfed-mcp",
-  "description": "Find vetted agent skills for your task and PyPI packages for your code - privacy-preserving discovery over MCP.",
+  "description": "Find vetted agent skills for your task, PyPI packages for your code, and the research behind both - privacy-preserving discovery over MCP.",
   "repository": {
     "url": "https://github.com/skill-federation/skill-federation",
     "source": "github"
   },
-  "version": "0.2.2",
+  "version": "0.2.3",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "skillfed-mcp",
-      "version": "0.2.2",
+      "version": "0.2.3",
       "transport": {
         "type": "stdio"
       },
@@ -26,6 +26,13 @@
         {
           "name": "SKILLFED_PACKAGES_ENDPOINT",
           "description": "Package-search portal origin used by find_packages (defaults to https://skillfed.io)",
+          "isRequired": false,
+          "isSecret": false,
+          "format": "string"
+        },
+        {
+          "name": "SKILLFED_RESEARCH_ENDPOINT",
+          "description": "Research-search portal origin used by find_research (defaults to https://skillfed.io)",
           "isRequired": false,
           "isSecret": false,
           "format": "string"

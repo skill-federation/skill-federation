@@ -1,5 +1,5 @@
 /**
- * One version, six places. A release is only correct if every manifest agrees.
+ * One version, NINE places. A release is only correct if every manifest agrees.
  *
  * Nothing in this repo used to check, and the cost was real: `.claude-plugin/marketplace.json`
  * sat at 0.1.2 through two releases because the runbook listed four manifests and there are
@@ -8,6 +8,16 @@
  *
  * Each of those fails SILENTLY — the package publishes, the plugin installs, the handshake
  * succeeds, and the wrong number ships. This test is the gate: bump one, bump them all.
+ *
+ * 2026-08-16: it happened AGAIN, and this test could not see it.
+ * `python-installer/src/skillfed/__init__.py` still read `__version__ = "0.1.0"` while
+ * everything else moved to 0.2.3 — so PyPI published the right version (pyproject.toml is
+ * correct and separate) while `import skillfed; skillfed.__version__` reported 0.1.0. Three
+ * releases, same rot, same silence, for the same root cause: it was never a TRACKED string,
+ * and a gate only guards what it enumerates.
+ * The lesson is not "add this file" — it is that fixing the value without extending the
+ * ASSERTION just resets the clock. Any new file that carries the version must be added to
+ * `versions()` in the same change that introduces it.
  */
 
 import { test } from "node:test";
@@ -28,6 +38,15 @@ function versions() {
   const marketplace = json(".claude-plugin/marketplace.json");
   const pyproject = /^version\s*=\s*"([^"]+)"/m.exec(read("python-installer/pyproject.toml"));
   assert.ok(pyproject, "no [project] version in python-installer/pyproject.toml");
+  // The Python package's RUNTIME version. pyproject.toml decides what PyPI
+  // publishes; this decides what `import skillfed; skillfed.__version__`
+  // reports, and the two rot apart silently - this file sat at 0.1.0 while
+  // three releases shipped, the exact failure this test's header describes
+  // for index.mjs, surviving only because it was never a tracked string.
+  const pyinit = /^__version__\s*=\s*"([^"]+)"/m.exec(
+    read("python-installer/src/skillfed/__init__.py")
+  );
+  assert.ok(pyinit, "no __version__ in python-installer/src/skillfed/__init__.py");
   // the MCP handshake string, read as TEXT: importing index.mjs starts a stdio server
   const handshake = /name:\s*"skillfed-mcp",\s*version:\s*"([^"]+)"/.exec(read("mcp-server/index.mjs"));
   assert.ok(handshake, "could not find the Server({name, version}) handshake in index.mjs");
@@ -42,6 +61,7 @@ function versions() {
       json("integrations/claude-code/.claude-plugin/plugin.json").version,
     ".claude-plugin/marketplace.json": marketplace.plugins[0].version,
     "python-installer/pyproject.toml": pyproject[1],
+    "python-installer/src/skillfed/__init__.py (__version__)": pyinit[1],
   };
 }
 

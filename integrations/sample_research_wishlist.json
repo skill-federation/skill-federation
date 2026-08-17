@@ -1,0 +1,19 @@
+{
+  "wishlist": [
+    {
+      "name": "curriculum",
+      "description": "automatic curriculum generation",
+      "keywords": ["curriculum", "difficulty"]
+    },
+    {
+      "name": "skill-verification",
+      "description": "self-verification before reuse",
+      "keywords": ["verify", "trust"]
+    },
+    {
+      "name": "skill-security",
+      "description": "skill security scanner",
+      "keywords": ["security", "prompt injection"]
+    }
+  ]
+}

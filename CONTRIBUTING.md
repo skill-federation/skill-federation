@@ -32,6 +32,8 @@ integrations/skillfed_client.py   the client seam (hosted endpoint or local core
 integrations/local_skills.py      installed-skill detection + candidate filtering
 integrations/search_packages.py   the PACKAGE wish-list finder — a different, GET-only,
                                    no-auth service (skillfed.io); no client seam of its own
+integrations/search_research.py   the RESEARCH wish-list finder — same GET-only, no-auth
+                                   host as search_packages.py, a different index (191 notes)
 installer/                        npm package `skillfed`   (npx no-clone path)
 python-installer/                 PyPI package `skillfed`  (uvx / pipx path)
 mcp-server/                       optional typed MCP tools (`skillfed-mcp`)
@@ -57,6 +59,18 @@ echo '{"wishlist":[{"description":"parse yaml config","keywords":["yaml","config
 ```
 
 `integrations/sample_package_wishlist.json` is a ready example.
+
+For **research** (a third index — 191 notes on agent-skills literature, not skills or packages),
+also no endpoint required (defaults to `https://skillfed.io`):
+
+```bash
+echo '{"wishlist":[{"description":"automatic curriculum generation"}]}' \
+  | python integrations/search_research.py -
+```
+
+`integrations/sample_research_wishlist.json` is a ready example. Every result carries a
+top-level `confidence` (`"strong"` or `"weak"`, with a `note` when weak) — read `"weak"` as "the
+best match found is a loose one," not as proof the corpus was searched exhaustively.
 
 ## Pull request guidelines
 

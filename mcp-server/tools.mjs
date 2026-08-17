@@ -84,6 +84,30 @@ export const PACKAGE_WISH_SCHEMA = {
   },
 };
 
+export const RESEARCH_WISH_SCHEMA = {
+  type: "object",
+  required: ["description"],
+  properties: {
+    name: {
+      type: "string",
+      description: "optional short local label for this wish (display-only, stays local)",
+    },
+    description: {
+      type: "string",
+      description:
+        "the topic or concept, not a guessed paper name — e.g. \"automatic curriculum\", not " +
+        "\"the ACL paper about curricula\". 3–8 dense words; longer prose measurably dilutes the " +
+        "match. One topic per wish — split a compound need into separate wishes.",
+    },
+    keywords: {
+      type: "array",
+      items: { type: "string" },
+      maxItems: 5,
+      description: "optional extra terms folded into the query (not a filter on the results)",
+    },
+  },
+};
+
 export const TOOLS = [
   {
     name: "find_skills",
@@ -152,6 +176,53 @@ export const TOOLS = [
           description: "1–10 package wishes, each a capability the code being written needs",
         },
         // Bounds mirror LIMIT_MIN/MAX in findPackages.mjs, which is where they are actually
+        // enforced — this schema is advisory, the clamp is what keeps an out-of-range value
+        // from silently riding on whatever the portal happens to default to.
+        limit: {
+          type: "integer",
+          minimum: 1,
+          maximum: 25,
+          default: 10,
+          description: "candidates per wish (1–25, default 10)",
+        },
+      },
+    },
+  },
+  {
+    name: "find_research",
+    description:
+      "Search 191 research notes on agent-skills literature by topic — the research-finding " +
+      "sibling of find_packages, over a DIFFERENT index on the same skillfed.io portal. Use it " +
+      "when you want the measured claim behind a design choice (benchmarks, ablations, failure " +
+      "rates) rather than a library or a skill. Every candidate has a published /research " +
+      "page, so page_url is always a working link. " +
+      "Each search returns a top-level `confidence`: \"strong\" or \"weak\", plus a `note` when " +
+      "weak. Read this honestly: \"weak\" means the best match FOUND is a loose one — it is NOT " +
+      "proof that the corpus was searched exhaustively and this is the closest thing that " +
+      "exists. Discount a weak result; do not treat it as evidence of absence. " +
+      "Known retrieval limit: a paraphrase with no lexical overlap and weak embedding " +
+      "similarity can miss the corpus entirely — measured at rank #67 of 191 on a real query. " +
+      "No confidence label rescues that, because confidence only describes a candidate that WAS " +
+      "returned. So an empty or weak find_research result does NOT prove no such research " +
+      "exists — reformulate or fall back to your own knowledge before concluding that. " +
+      "Wish-formulation rules (derived from the live ranker's field weights, not vibes): the " +
+      "index weights concept_terms 3.0 / paper_title 2.5 / meta_description 1.5 / claim_title " +
+      "0.75, and concept_terms is CONTROLLED VOCABULARY (e.g. \"automatic curriculum\", \"skill " +
+      "library\", \"self-verification\") — so topic/concept phrasing beats guessing a paper " +
+      "name; keep each wish to 3–8 dense words, longer prose dilutes the match; one topic per " +
+      "wish, fan a compound need out into separate wishes.",
+    inputSchema: {
+      type: "object",
+      required: ["wishlist"],
+      properties: {
+        wishlist: {
+          type: "array",
+          minItems: 1,
+          maxItems: 10,
+          items: RESEARCH_WISH_SCHEMA,
+          description: "1–10 research wishes, each a topic or concept from the literature",
+        },
+        // Bounds mirror LIMIT_MIN/MAX in findResearch.mjs, which is where they are actually
         // enforced — this schema is advisory, the clamp is what keeps an out-of-range value
         // from silently riding on whatever the portal happens to default to.
         limit: {

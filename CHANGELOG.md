@@ -6,6 +6,40 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.2.3] — 2026-08-16
+
+**`find_research` — the research-finding sibling of `find_packages`.** Skills are capabilities
+for the agent; packages are libraries for the code; research is the literature underneath both.
+This adds topic search over 191 research notes on agent-skills literature, at skillfed.io's own
+research index — a third, separate service from both the skill federation and the package portal.
+
+### Added
+- **`find_research` MCP tool** (`mcp-server/`): 1–10 research wishes (a topic/concept phrase +
+  optional keywords), fanned out concurrently against skillfed.io's `GET
+  /api/research/search.json`, with an optional `limit` (1–25, default 10, clamped client-side the
+  same way `find_packages`' `limit` is). Candidates normalize to `id, paper_title, claim_title,
+  meta_description, page_url` — `score` is deliberately never surfaced (same reasoning as
+  `find_packages`). Every research candidate has a published `/research/{slug}` page, unlike
+  skills, so `page_url` is always a working link.
+- **`confidence` is surfaced, and its meaning is stated precisely.** Each search returns a
+  top-level `confidence: "strong"|"weak"`, plus a `note` when weak. The tool description says
+  plainly: `weak` means the best match *found* is a loose one — it does NOT mean the corpus was
+  searched exhaustively and this is the closest thing that exists. An agent reading a weak result
+  should discount it, not treat it as proof of absence.
+- **The retrieval limit is documented, not softened.** A paraphrase with no lexical overlap and
+  weak embedding similarity can miss the corpus entirely — measured at rank #67 of 191 on a real
+  query. No confidence label fixes that, since the label only describes a candidate that *was*
+  returned. `find_research` returning nothing useful does not prove no such research exists.
+- **Wish-formulation guidance derived from the live ranker's field weights**: `concept_terms`
+  (controlled vocabulary) is weighted 3.0, `paper_title` 2.5, `meta_description` 1.5,
+  `claim_title` 0.75 — so topic/concept phrasing beats guessing a paper name; 3–8 dense words;
+  one topic per wish, fan a compound need out into separate wishes.
+- **`integrations/search_research.py`** — the Python twin, mirroring `search_packages.py` the
+  same way that mirrors `findPackages.mjs`. Talks directly to skillfed.io (GET, no auth, no
+  tenant), no dependency on `skillfed_client.py`.
+- Same privacy floor as `find_skills` / `find_packages`: only the topic phrase + keywords cross
+  the wire; the wish `name`, if given, is display-only and stays local.
+
 ## [0.2.2] — 2026-08-14
 
 **`find_packages` — the package-finding sibling of `find_skills`.** Skills are capabilities for
@@ -229,7 +263,8 @@ paths that all install the zero-runtime curl tier (the finder skill + `/skillfed
   fallback.
 - `mcp-server/package.json` gained a `repository` field (required for npm provenance).
 
-[Unreleased]: https://github.com/skill-federation/skill-federation/compare/v0.2.2...HEAD
+[Unreleased]: https://github.com/skill-federation/skill-federation/compare/v0.2.3...HEAD
+[0.2.3]: https://github.com/skill-federation/skill-federation/compare/v0.2.2...v0.2.3
 [0.2.2]: https://github.com/skill-federation/skill-federation/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/skill-federation/skill-federation/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/skill-federation/skill-federation/compare/v0.1.3...v0.2.0

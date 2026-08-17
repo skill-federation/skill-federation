@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "product": "skillfed",
-  "release": "0.2.2",
+  "release": "0.2.3",
   "repository": "https://github.com/skill-federation/skill-federation",
   "site": "https://skillfed.io",
   "federation_endpoint": "https://qurini-skill-federation.hf.space",
