@@ -6,6 +6,15 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Changed
+- **Finder skill (payload): the no-harness path now leads with `GET /api/q/<terms>`** — one GET
+  returning ranked candidates with body URLs and trust fields, path-style so chat fetchers that
+  strip query strings can run it; the POST-only caveat now names what actually still needs the
+  tiers (the multi-wish federated protocol). Hardcoded catalog counts are gone from the skill
+  body (the catalog grows weekly; the hardcoded numbers had gone ~5× stale), and the "site isn't
+  indexed yet" warning is now shallow-coverage guidance — the site has started appearing in
+  search indexes.
+
 ## [0.2.3] — 2026-08-16
 
 **`find_research` — the research-finding sibling of `find_packages`.** Skills are capabilities

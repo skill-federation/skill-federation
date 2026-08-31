@@ -27,7 +27,7 @@
 
 *A bare agent solves 17.5% of SkillsBench tasks. With Skill Federation, 22.8% — and your work never leaves your machine.*
 
-**Browse and search the indexed skill catalog on the web → [skillfed.io](https://skillfed.io)**
+**Browse and search the indexed catalogs — skills, PyPI packages, research — on the web → [skillfed.io](https://skillfed.io)**
 
 </div>
 
@@ -131,7 +131,8 @@ You: /skillfed plan a launch for my open-source dev tool
   (See [Security](#-security).)
 - **Native, zero-install.** The default tier needs nothing but `curl`, already on Windows 10+
   and macOS. No Python, no Node, no package manager. (Optional tiers add typed MCP tools if you
-  have Node.)
+  have Node — including capability search over the PyPI package index and the research-notes
+  index; see **Beyond skills** below.)
 
 ## 🌍 Works anywhere
 
@@ -142,19 +143,42 @@ the skill already carries; **`--hook none` is the default**, and a complete inst
 
 **Nothing installed, just a browser?** Ask any chat to *use skillfed.io to find a skill* — or paste
 in [the skill body itself](integrations/claude-code/skills/skill-federation/SKILL.md), which carries
-the whole procedure. The zero-install loop is two GETs:
+the whole procedure. The zero-install loop is two GETs — search, then read:
 
+- **Search** — [`skillfed.io/api/q/<terms>`](https://skillfed.io/api/q/pdf-extraction) returns
+  ranked candidates for a query as one GET, each carrying a direct body URL plus trust fields.
+  The terms ride in the *path* on purpose: chat fetchers routinely strip long query strings, so
+  this form survives where `?q=` doesn't.
 - **Find** — the catalog is published as machine-readable JSON, no crawling required:
   [`skillfed.io/.well-known/agent-skills/index.json`](https://skillfed.io/.well-known/agent-skills/index.json)
-  is one GET returning **511** entries, each a skill name plus a direct `.md` URL;
-  [`skillfed.io/api/index.json`](https://skillfed.io/api/index.json) is the fuller listing:
-  **701** skills with publisher and license, 500 per page, follow `next`. (Hand these URLs to a
-  chat directly; the site isn't in web-search indexes yet, so don't rely on a search finding it.)
+  is one GET returning the whole index, each entry a skill name plus a direct `.md` URL;
+  [`skillfed.io/api/index.json`](https://skillfed.io/api/index.json) is the fuller listing —
+  publisher and license for every skill, 500 per page, follow `next`. (Hand these URLs to a chat
+  directly; search-index coverage of the site is still shallow, so a thin web-search result can
+  masquerade as a thin catalog.)
 - **Read** — append `.md` to any skill page URL for the full body as plain text. One GET, and you
   have it.
 
-But one limit is stubborn: the wish-list search is POST-only today, so a browsing-only chat can
-*read* skills but cannot run the federated wish query.
+What a browsing-only chat still can't run is the full wish-list protocol — several wishes at
+once, each with paraphrases and a capability sketch, POSTed as one federated query. That's what
+the finder tiers add.
+
+## 🧭 Beyond skills: packages & research
+
+skillfed.io indexes more than skills, and the MCP tier (`--with-npx`) exposes all three streams
+as typed tools:
+
+- **`find_skills`** — the vetted skill catalog everything above describes.
+- **`find_packages`** — capability search over the PyPI package index. About to `pip install`
+  whatever name the model recalled from its weights? Describe the capability instead and get back
+  real, current packages — each with a what-it-does card, license treatment, and a
+  worth-installing verdict.
+- **`find_research`** — topic search over the research-notes index on the agent-skills
+  literature: measured claims with sources, for when you want the evidence rather than a tool.
+
+The two extra indexes are plain GETs (`/api/packages/search.json?q=…`,
+`/api/research/search.json?q=…`) — no auth, no tenant — so `curl` or any agent with a fetch tool
+can use them without the MCP tier.
 
 ## ⚙️ How it works
 
@@ -279,7 +303,7 @@ core flags for the **finder** install (`install <slug>` is npx-only): `-Flag` in
 | `--with-hook` / `-WithHook` | — | off | legacy alias for `--hook end` |
 | `--scope` / `-Scope` | `user` \| `project` | `user` | `~/.claude` vs `./.claude` |
 | `--target` / `-Target` | a directory | — | install into an explicit path instead of the `--scope` default |
-| `--with-npx` / `-WithNpx` | — | off | also register the Node MCP server for typed tools (needs Node ≥18) |
+| `--with-npx` / `-WithNpx` | — | off | also register the Node MCP server for typed `find_skills` / `find_packages` / `find_research` tools (needs Node ≥18) |
 | `--endpoint` / `-Endpoint` | a URL | keyless demo | the federation endpoint to record |
 
 Two more flags exist **only in the curl installers** (`install.sh` / `install.ps1`), not in
@@ -394,7 +418,7 @@ python-installer/                       PyPI package `skillfed` — the `uvx ski
 scripts/vendor-payload.mjs              vendors the 6 payload files into both packages (single source of truth)
 integrations/claude-code/               the Claude Code plugin (skill + /skillfed + optional hooks) — canonical payload
 integrations/*.py                       optional Python tier (advanced / CI)
-mcp-server/                             optional Node MCP tier (typed tools via npx skillfed-mcp)
+mcp-server/                             optional Node MCP tier (typed find_skills / find_packages / find_research via npx skillfed-mcp)
 ```
 
 ## 📄 License

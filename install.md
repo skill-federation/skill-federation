@@ -64,7 +64,7 @@ normally and let the skill offer itself.
 |---|---|---|---|
 | **curl** (default, always) | nothing — `curl` ships with Win10+/macOS | every run | the finder skill + `/skillfed` command, runtime-free |
 | **hooks** (optional) | nothing | `--hook start\|end\|both` / `-Hook` | 0–2 planning nudges — `start` on prompts submitted while in plan mode, `end` after a plan is approved |
-| **npx** (Node MCP) | Node ≥18 | `--with-npx` / `-WithNpx` | Claude calls typed `find_skills`/… tools instead of shelling out |
+| **npx** (Node MCP) | Node ≥18 | `--with-npx` / `-WithNpx` | Claude calls typed `find_skills` / `find_packages` / `find_research` tools instead of shelling out |
 | **python** | a Python interpreter | `--with-python` / `-WithPython` | prints the advanced/CI env-var setup |
 
 The installer prints what it detected (`curl` / `node` / `python`) and installs the **curl tier

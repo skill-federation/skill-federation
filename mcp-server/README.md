@@ -29,7 +29,7 @@ over the separate **package** and **research** portal indexes:
 |---|---|---|
 | `find_skills` | `/search` (per wish, fanned out) | lexical-recall search over a wish-list; optional `top_n` (1–25, default 10) |
 | `find_packages` | skillfed.io `/api/packages/search.json` (per wish, fanned out) | capability search over the PyPI package index — a **different service** from the skill federation above, GET-only, no auth, no tenant; optional `limit` (1–25, default 10) |
-| `find_research` | skillfed.io `/api/research/search.json` (per wish, fanned out) | topic search over 191 research notes on agent-skills literature — **another different index**, same GET/no-auth/no-tenant shape as `find_packages`; optional `limit` (1–25, default 10) |
+| `find_research` | skillfed.io `/api/research/search.json` (per wish, fanned out) | topic search over the research-notes index on agent-skills literature — **another different index**, same GET/no-auth/no-tenant shape as `find_packages`; optional `limit` (1–25, default 10) |
 | `get_skill_bundle` | `/fetch` | fetch a skill's full text — **to consult, or to install**: `purpose: "hint"` (default) reads it in context and writes nothing; `purpose: "install"` is the later, user-approved decision |
 | `report_selection` | `/report_selection` | what each shown candidate was worth: `outcomes` maps `skill_id → ["Install"\|"Read"\|"Reject", reason]`. **A Read is a hit** |
 | `emit_demand_pointer` | `/report_demand` | demand on a genuine miss (empty OR everything rejected — never when you read something): `wish` + a `sketch` **string** per `demand-sketch.md` |
