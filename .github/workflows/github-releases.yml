@@ -1,0 +1,71 @@
+name: Metrics · GitHub Releases janitor
+
+# Ensures every v* tag has a GitHub Release, with notes cut from its CHANGELOG.md section.
+#
+# Why: npm/PyPI publishing triggers on TAG PUSH (release-npm.yml / release-pypi.yml), so nothing
+# ever created Release objects — the repo's Releases panel sat at "v0.1.0 — Latest" while five
+# newer tags shipped. A stale panel reads as a stale project.
+#
+# Idempotent janitor: every run walks all v* tags ascending and creates only the missing
+# Releases; the highest version is marked --latest explicitly. Creating a Release from an
+# existing tag pushes no tag, so it cannot re-trigger the publish workflows (they listen to
+# push:tags only — and nothing in this repo listens to release: events).
+#
+# Title rule (matches the hand-written "v0.1.0 — no-clone install" style): the section's leading
+# bold theme — else its first sentence — cut at the first " — ", backticks stripped. Sections
+# opening with a bold theme line give the best titles; 0.2.0+ already follow that convention.
+#
+# Trigger: daily (self-healing within a day of every release), edits to this file (immediate
+# backfill), or manual dispatch.
+
+on:
+  schedule:
+    - cron: '43 6 * * *'   # daily at 06:43 UTC
+  push:
+    branches: [main]
+    paths: ['.github/workflows/github-releases.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write          # create releases
+
+concurrency:
+  group: releases-janitor
+  cancel-in-progress: false
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # full history so every tag is present
+
+      - name: Create missing releases from CHANGELOG sections
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          tags=$(git tag -l 'v*' | sort -V)
+          [ -n "$tags" ] || { echo "no v* tags"; exit 0; }
+          maxtag=$(echo "$tags" | tail -1)
+          for tag in $tags; do
+            if gh release view "$tag" >/dev/null 2>&1; then
+              echo "have: $tag"; continue
+            fi
+            v="${tag#v}"
+            awk "/^## \[$(echo "$v" | sed 's/\./\\./g')\]/{f=1;next} /^## \[/{f=0} f" CHANGELOG.md > /tmp/notes.md
+            flat=$(grep -v '^$' /tmp/notes.md | head -4 | tr '\n' ' ' | sed 's/  */ /g')
+            if echo "$flat" | grep -q '^\*\*'; then
+              theme=$(echo "$flat" | sed -n 's/^\*\*\([^*]\{1,\}\)\*\*.*/\1/p')
+            else
+              theme=$(echo "$flat" | sed 's/^\([^.]*\)\..*/\1/')
+            fi
+            theme=$(echo "$theme" | sed 's/`//g; s/ — .*//; s/[.: ]*$//; s/^ *//' | cut -c1-60)
+            title="$tag${theme:+ — $theme}"
+            args=(--verify-tag --title "$title")
+            if [ -s /tmp/notes.md ]; then args+=(--notes-file /tmp/notes.md); else args+=(--generate-notes); fi
+            if [ "$tag" = "$maxtag" ]; then args+=(--latest); else args+=(--latest=false); fi
+            echo "create: $title"
+            gh release create "$tag" "${args[@]}"
+          done
